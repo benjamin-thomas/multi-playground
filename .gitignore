@@ -4,3 +4,6 @@
 */go-simple/dist/*
 
 */ocaml/_build/
+
+**/.gradle/
+**/build/
