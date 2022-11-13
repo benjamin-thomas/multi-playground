@@ -25,11 +25,7 @@ let private addTrailingSepChar (str: string) : string =
     else
         str + sepChar
 
-let mutable calls = 0
-
 let rec toSummary path =
-    calls <- calls + 1
-    printfn $"CALLS: %d{calls}"
     let fi = System.IO.FileInfo path
 
     let isDir =
