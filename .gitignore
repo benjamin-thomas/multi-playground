@@ -1,2 +1,4 @@
 */fsharp/bin/**
 */fsharp/obj/**
+
+*/go-simple/dist/*
