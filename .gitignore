@@ -4,6 +4,11 @@
 */go-simple/dist/*
 
 */ocaml/_build/
+*/ocaml/*.cmi
+*/ocaml/*.cmo
+*/ocaml/*.cmx
+*/ocaml/*.o
+*/ocaml/a.out
 
 **/.gradle/
 **/build/
