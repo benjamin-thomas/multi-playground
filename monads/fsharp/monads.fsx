@@ -1,14 +1,12 @@
-// TODO: try to use Option.bind
-// TODO: remove parentheses with operator
-let (>>=) opt f =
-    match opt with
+let (>>=) o f =
+    match o with
     | Some x -> f x
     | None -> None
 
 let add x y =
     x >>= fun x ->
     y >>= fun y ->
-    Some(x + y)
+    Some (x + y)
 
 let printRes res =
     match res with
