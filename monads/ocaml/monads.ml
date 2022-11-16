@@ -1,4 +1,5 @@
 (* echo monads.ml | entr -c bash -c 'ocamlc ./monads.ml && ./a.out' *)
+(* echo monads.ml | entr -c ocaml /_ *)
 
 let add_a x y z =
   match x with
