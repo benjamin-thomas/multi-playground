@@ -1,3 +1,6 @@
+(*
+    echo monads.fsx | entr -c dotnet fsi /_
+*)
 let (>>=) o f =
     match o with
     | Some x -> f x
@@ -8,11 +11,9 @@ let add x y =
     y >>= fun y ->
     Some (x + y)
 
-let bind_rev o fn = Option.bind fn o
-
 let mult x y =
-    bind_rev x (fun x -> 
-    bind_rev y (fun y ->
+    x |> Option.bind (fun x -> 
+    y |> Option.bind (fun y -> 
     Some(x * y)))
 
 let printRes res =
@@ -21,7 +22,6 @@ let printRes res =
     | Some a -> printfn "Some %O" a
 
 
-// dotnet fsi monads.fsx
 printf "\n--- MONAD EXAMPLE ---\n\n"
 printf "add  (Some 1) (Some 2)     =>   ";; printRes <| add  (Some 1) (Some 2);;
 printf "add  (Some 1)  None        =>   ";; printRes <| add  (Some 1)  None;;
