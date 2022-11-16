@@ -14,7 +14,7 @@ let add x y =
 let mult x y =
     x |> Option.bind (fun x -> 
     y |> Option.bind (fun y -> 
-    Some(x * y)))
+    Some (x * y)))
 
 let printRes res =
     match res with
