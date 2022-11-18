@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PGHOST=pg.hello.test PGUSER=postgres PGPASSWORD=postgres exec psql "$@"
