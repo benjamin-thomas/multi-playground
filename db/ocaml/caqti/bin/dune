@@ -1,4 +1,4 @@
 (executable
  (public_name caqti_demo)
  (name main)
- (libraries caqti_demo))
+ (libraries lib))

@@ -1,2 +1,5 @@
 (library
- (name caqti_demo))
+ (name lib)
+ (libraries lwt lwt_ppx caqti caqti-lwt caqti-driver-postgresql)
+ (preprocess
+  (pps lwt_ppx)))
