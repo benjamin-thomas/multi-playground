@@ -1,4 +1,11 @@
 (executable
  (public_name caqti_demo)
  (name main)
- (libraries lib))
+ (libraries lib)
+ (preprocess
+  (pps lwt_ppx)))
+
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))

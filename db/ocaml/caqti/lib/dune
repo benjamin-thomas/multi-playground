@@ -3,3 +3,8 @@
  (libraries lwt lwt_ppx caqti caqti-lwt caqti-driver-postgresql)
  (preprocess
   (pps lwt_ppx)))
+
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))
