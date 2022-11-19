@@ -2,7 +2,7 @@
 
 (*
     Initialize the database with:
-        ../init.ml
+        ../../init.ml
 
     Build release fails if column has been renamed (good!)
         dotnet build -c Release
@@ -26,6 +26,9 @@ let list_customers_freestyle =
         | None -> printfn "Customer #%04d -> %s" x.id x.name
 
 (*
+-------------------------------------------
+FIXME: I could not get this code to compile
+-------------------------------------------
 type Customer =
     {
         Id: int

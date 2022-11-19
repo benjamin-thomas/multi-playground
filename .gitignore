@@ -1,5 +1,5 @@
-*/fsharp/bin/
-*/fsharp/obj/
+*/fsharp/**/bin/
+*/fsharp/**/obj/
 
 */go-simple/dist/*
 
