@@ -14,7 +14,7 @@
 
 [<Literal>]
 let connStr =
-    "Host=pg.hello.test;Database=mpg_db;UserName=postgres;Password=postgres;"
+    "Host=pg.mpg.test;Database=mpg_db;UserName=postgres;Password=postgres;"
 
 (*
     Requires: Npgsql.dll => `Npgsql` package

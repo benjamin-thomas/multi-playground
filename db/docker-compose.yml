@@ -1,0 +1,25 @@
+version: '3.7' # https://docs.docker.com/compose/compose-file/compose-versioning/
+
+services:
+
+  # Initialize the DB container:
+  #   docker-compose up db
+  #   ./init.ml && ./psql
+  #
+  # Destroy all services and their related storage:
+  #   docker-compose down --volumes
+  db:
+    image: postgres:13.9
+    command:
+      [
+        "postgres",
+        "-c",
+        "log_statement=all",
+        "-c",
+        "log_destination=stderr"
+      ]
+    ports:
+      - '127.23.0.1:5432:5432' # 127.23.0.1      pg.mpg.test
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mpg_db
