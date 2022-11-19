@@ -1,0 +1,4 @@
+(library
+ (name lib)
+ ;; opam install pgocaml pgocaml_ppx
+ (libraries pgocaml))
