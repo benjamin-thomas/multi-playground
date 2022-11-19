@@ -9,7 +9,7 @@ services:
   # Destroy all services and their related storage:
   #   docker-compose down --volumes
   db:
-    image: postgres:13.9
+    image: postgres:15
     command:
       [
         "postgres",
