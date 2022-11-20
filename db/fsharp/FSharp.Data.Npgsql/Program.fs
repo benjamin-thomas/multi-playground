@@ -13,17 +13,35 @@
 let connStr =
     "Host=pg.mpg.test;Database=mpg_db;UserName=postgres;Password=postgres;"
 
-type Db = NpgsqlConnection<connStr>
+type Db = NpgsqlConnection<connStr, ReuseProvidedTypes=true>
+
 
 let list_customers_freestyle =
     use cmd =
         Db.CreateCommand<"SELECT id, name, alternative_name AS alt_name FROM customers">(connStr)
 
-    for x in cmd.Execute() do
+    for (x) in cmd.Execute() do
 
         match x.alt_name with
         | Some alt_name -> printfn "Customer #%04d -> %s (%s)" x.id x.name alt_name
         | None -> printfn "Customer #%04d -> %s" x.id x.name
+
+let test_list_tuples =
+    use cmd =
+        Db.CreateCommand<"SELECT id, name FROM customers", ResultType.Tuples>(connStr)
+
+    let res: (int * string) list = cmd.Execute()
+    res |> printfn "Customers as tuples: %A"
+
+let test_list_records =
+    use cmd =
+        Db.CreateCommand<"SELECT id, name FROM customers", ResultType.Records>(connStr)
+
+    let tmp = {| Id = 1; Name = "Ben" |}
+    // let res: List<Db.``id:Int32, name:String``> = cmd.Execute()
+    let res: (Db.``id:Int32, name:String``) list = cmd.Execute()
+    res |> printfn "Customers as records: %A"
+
 
 (*
 -------------------------------------------
@@ -60,5 +78,7 @@ let main (_) =
     printfn "=== Testing database interactivity ==="
 
     list_customers_freestyle
+    test_list_tuples
+    test_list_records
 
     0
