@@ -68,8 +68,6 @@ let insertRobertAkaBob () =
     ctx.SubmitUpdates()
 
 let deleteEltonAndBob () =
-
-
     query {
         for c in customers do
             where (c.Name = "Elton" || c.AlternativeName = Some "Bob")
@@ -79,6 +77,15 @@ let deleteEltonAndBob () =
     // |> Async.RunSynchronously // don't know how to use this construct so I'm ignoring + passing an (extra) unit instead
 
     ctx.SubmitUpdates
+
+
+let insertNewCustomer x = customers.Create($"NAME_FOR_X[%d{x}]")
+
+let insertManyCustomers (count: int) () =
+    for x in 1..count do
+        insertNewCustomer x |> ignore
+
+    ctx.SubmitUpdates()
 
 [<EntryPoint>]
 let main _ =
@@ -101,5 +108,18 @@ let main _ =
     deleteEltonAndBob () () // quircky, see my comment about `Async.RunSynchronously`
     printfn "\n=> Listing customers again..."
     listCustomers () |> printCustomers
+
+    // Testing perf (Release build)
+    // Initial 1s for the program to get up to this point.
+    // 1s + 6s --> that's slow! I'm opening/closing a transaction every time here
+    // 1s + 1.7s --> flushing the ctx at the end of the loop, still slow!
+    (*
+        mpg_db=# INSERT INTO customers (name) SELECT 'NAME_FOR_X[' || x || ']' FROM generate_series(1, 1000)x;
+        INSERT 0 1000
+        Time: 14.186 ms
+    *)
+    printfn "\n=> Inserting 1000 customers..."
+    insertManyCustomers 1000 ()
+    // DELETE FROM customers WHERE name LIKE 'NAME_FOR_X%';
 
     0
