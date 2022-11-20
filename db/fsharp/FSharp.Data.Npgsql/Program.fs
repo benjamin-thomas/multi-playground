@@ -39,27 +39,29 @@ type Customer =
         AlternativeName: string option
     }
 
-let test_list_records =
-    use cmd =
-        Db.CreateCommand<"SELECT id, name FROM customers WHERE id < @maxId LIMIT @limit", ResultType.Records>(connStr)
+let getCustomersCmd =
+    Db.CreateCommand<"SELECT id, name, alternative_name FROM customers WHERE id < @maxId LIMIT @limit", ResultType.Records>
 
-    let res: List<Db.``id:Int32, name:String``> =
-        // Use named params!
-        cmd.Execute(limit = 3, maxId = 10)
+// The properties must be specified sorted alphabetically
+type GeneratedFromGetCustomerCmdExec = Db.``alternative_name:Option<String>, id:Int32, name:String``
+
+let mapFromGetCustomersCmd (x: GeneratedFromGetCustomerCmdExec) : Customer =
+    {
+        Id = x.id
+        Name = x.name
+        AlternativeName = None
+    }
+
+let test_list_records =
+    use cmd = getCustomersCmd (connStr)
+
+    // Using named params! It removes params order dependency.
+    let res = cmd.Execute(limit = 3, maxId = 10)
 
     res |> printfn "Customers as records: %A"
 
-    // Code load order issue: this generated type is not available before `cmd.Execute()`
-    // So I can only define this function here for now.
-    let mapCustomer (x: Db.``id:Int32, name:String``) : Customer =
-        {
-            Id = x.id
-            Name = x.name
-            AlternativeName = None
-        }
-
     res
-    |> List.map mapCustomer
+    |> List.map mapFromGetCustomersCmd
     |> printfn "Mapped customers: %A"
 
 let test_list_anon_records =
