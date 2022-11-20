@@ -1,6 +1,9 @@
 */fsharp/**/bin/
 */fsharp/**/obj/
 
+*/csharp/**/bin/
+*/csharp/**/obj/
+
 */go-simple/dist/*
 
 */ocaml/**/_build/
