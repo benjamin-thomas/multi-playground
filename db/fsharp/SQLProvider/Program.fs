@@ -23,6 +23,7 @@ type Db =
     SqlDataProvider<DatabaseVendor=Common.DatabaseProviderTypes.POSTGRESQL, ConnectionString=connStr, UseOptionTypes=Common.NullableColumnType.OPTION>
 
 let ctx = Db.GetDataContext()
+let customers = ctx.Public.Customers
 
 type Customer =
     {
@@ -31,10 +32,13 @@ type Customer =
         AltName: string option
     }
 
-let listCustomers =
+let listCustomers () =
     query {
         for c in ctx.Public.Customers do
-            where (c.Id < 10)
+            where (c.Id > 0) // bogus, just for demo
+            sortBy (c.Id) // how to sort by nulls first/last?
+            // sortBy("name") // can't do that
+            // sortByNullable (System.Nullable c.Id) // not sure why that'd be useful
 
             select (
                 {
@@ -47,14 +51,55 @@ let listCustomers =
     }
     |> Seq.toList
 
-[<EntryPoint>]
-let main _ =
-    printfn "=== FSharp.Data.Sql demo ==="
-    let customers = listCustomers
-
+let printCustomers customers =
     for c in customers do
         match c.AltName with
         | None -> printfn $"Customer #%d{c.Id} %s{c.Name}"
         | Some altName -> printfn $"Customer #%d{c.Id} %s{c.Name} (%s{altName})"
+
+let insertElton () =
+    customers.Create("Elton") |> ignore
+    ctx.SubmitUpdates()
+
+let insertRobertAkaBob () =
+    let row = customers.Create() // throw exception if I don't specify the non-null columns below
+    row.Name <- "Robert"
+    row.AlternativeName <- Some "Bob"
+    ctx.SubmitUpdates()
+
+let deleteEltonAndBob () =
+
+
+    query {
+        for c in customers do
+            where (c.Name = "Elton" || c.AlternativeName = Some "Bob")
+    }
+    |> Seq.``delete all items from single table``
+    |> ignore
+    // |> Async.RunSynchronously // don't know how to use this construct so I'm ignoring + passing an (extra) unit instead
+
+    ctx.SubmitUpdates
+
+[<EntryPoint>]
+let main _ =
+    printfn "=== FSharp.Data.Sql demo ==="
+
+    printfn "\n=> Listing customers at start..."
+    listCustomers () |> printCustomers
+
+    printfn "\n=> Inserting Elton..."
+    insertElton ()
+    printfn "\n=> Listing customers again..."
+    listCustomers () |> printCustomers
+
+    printfn "\n=> Inserting Robert (aka: Bob)..."
+    insertRobertAkaBob ()
+    printfn "\n=> Listing customers again..."
+    listCustomers () |> printCustomers
+
+    printfn "\n=> Deleting Elton and Bob..."
+    deleteEltonAndBob () () // quircky, see my comment about `Async.RunSynchronously`
+    printfn "\n=> Listing customers again..."
+    listCustomers () |> printCustomers
 
     0
