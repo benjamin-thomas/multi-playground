@@ -4,3 +4,8 @@
  (libraries lib)
  (preprocess
   (pps pgocaml_ppx)))
+
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))

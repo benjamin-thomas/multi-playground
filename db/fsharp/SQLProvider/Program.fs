@@ -117,6 +117,18 @@ let main _ =
         mpg_db=# INSERT INTO customers (name) SELECT 'NAME_FOR_X[' || x || ']' FROM generate_series(1, 1000)x;
         INSERT 0 1000
         Time: 14.186 ms
+
+
+Best-case scenario (commiting at the end):
+
+time ./bin/Release/net6.0/SQLProviderDemo
+
+=> Inserting 1000 customers...
+
+real    0m2.626s
+user    0m2.240s
+sys     0m0.339s
+
     *)
     printfn "\n=> Inserting 1000 customers..."
     insertManyCustomers 1000 ()
