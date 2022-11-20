@@ -22,8 +22,8 @@ let list_customers_freestyle =
     for (x) in cmd.Execute() do
 
         match x.alt_name with
-        | Some alt_name -> printfn "Customer #%04d -> %s (%s)" x.id x.name alt_name
-        | None -> printfn "Customer #%04d -> %s" x.id x.name
+        | Some alt_name -> printfn $"Customer #%04d{x.id} -> %s{x.name} (%s{alt_name})"
+        | None -> printfn $"Customer #%04d{x.id} -> %s{x.name}"
 
 let test_list_tuples =
     use cmd =
@@ -94,7 +94,7 @@ let main (_) =
     printfn "=> Using anonymous records..."
 
     test_list_anon_records
-    |> List.iter (fun cust ->
-        printfn "ID      = %03d\nName    = %s\nAltName = %A\n" cust.Id cust.Name cust.AlternativeName)
+    |> List.iter (fun customer ->
+        printfn $"ID      = %03d{customer.Id}\nName    = %s{customer.Name}\nAltName = %A{customer.AlternativeName}\n")
 
     0
