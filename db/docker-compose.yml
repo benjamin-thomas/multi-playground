@@ -23,3 +23,6 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mpg_db
+      # pgocaml lib does not support scram-sha-256, see issues/120
+      #POSTGRES_HOST_AUTH_METHOD: md5
+      #POSTGRES_INITDB_ARGS: --auth-host=md5
