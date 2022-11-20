@@ -22,9 +22,9 @@ internal static class Program
         foreach (var c in customers)
         {
             /*
-                I get this warning in Rider (line 35):
+                I get this warning in Rider + vscode (line 35):
                     "Dereference of a possibly null reference"
-                    
+
                 I can get an exception:
                     "Unhandled exception. System.NullReferenceException:
                          Object reference not set to an instance of an object."
