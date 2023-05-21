@@ -91,3 +91,37 @@ let _ =
   printRes "add_e (Some 1) None None        " @@ add_e (Some 1) None (Some 3);
   print_endline ""
 ;;
+
+let succeed b = if b then Ok 1 else Error "Oops!"
+
+let (let*) = Result.bind
+
+let compute_ok_ok  =
+    let* a = succeed true in
+    let* b = succeed true in
+    Ok (a + b)
+
+let compute_ok_err  =
+  let* a = succeed true in
+  let* b = succeed false in
+  Ok (a + b)
+
+let print_my_result = function
+  | Error s -> s
+  | Ok n -> string_of_int n
+
+(** returns either Ok, otherwise the Error of the same type
+ *  This is somewhat unusual I suppose, I just want to print the original error below.
+ *  I could also use the `print_result` function above.
+ *)
+let ok_or_err r = match r with Ok v -> v | Error e -> e
+
+let () =
+  ()
+  ; Printf.printf "a) Add with (Ok, Ok): %s\n%!"  (compute_ok_ok  |> Result.map (fun n -> string_of_int n) |> Result.value ~default:"oops")
+  ; Printf.printf "a) Add with (Ok, Err): %s\n%!" (compute_ok_err |> Result.map (fun n -> string_of_int n) |> Result.value ~default:"oops")
+  ; Printf.printf "b) Add with (Ok, Ok): %s\n%!"  (compute_ok_ok  |> Result.map (fun n -> string_of_int n) |> ok_or_err)
+  ; Printf.printf "b) Add with (Ok, Err): %s\n%!" (compute_ok_err |> Result.map (fun n -> string_of_int n) |> ok_or_err)
+  ; Printf.printf "c) Add with (Ok, Ok): %s\n%!"  (compute_ok_ok  |> print_my_result)
+  ; Printf.printf "c) Add with (Ok, Err): %s\n%!" (compute_ok_err |> print_my_result)
+
