@@ -56,8 +56,8 @@ let add_e x y z =
 
  Rather than using `and_map`, I'll use the function name `apply` (it seems fit?)
  *)
-let apply oa ob =
-  match oa, ob with
+let apply opt_a opt_b =
+  match opt_a, opt_b with
   | Some value, Some fn -> Some (fn value)
   | _, _ -> None
 ;;
@@ -69,12 +69,32 @@ let add_f a b c =
     |> apply c
 ;;
 
+let apply res_a res_b =
+  match res_a, res_b with
+  | Ok value, Ok fn -> Ok (fn value)
+  | Error err, _ -> Error err
+  | _, Error err -> Error err
+;;
+
+let add_g a b c =
+    Ok (fun x y z -> x + y + z)
+    |> apply a
+    |> apply b
+    |> apply c
+;;
+
 (* MAIN *)
 
 let printRes header fn =
   match fn with
   | None -> Printf.printf "%s => None\n" header
   | Some n -> Printf.printf "%s => Some %d\n" header n
+;;
+
+let printRes2 header fn =
+  match fn with
+  | Error s -> Printf.printf "%s => Error \"%s\"\n" header s
+  | Ok n -> Printf.printf "%s => Ok %d\n" header n
 ;;
 
 let _ =
@@ -113,7 +133,13 @@ let _ =
   printRes "add_f None (Some 2) (Some 3)    " @@ add_f None (Some 2) (Some 3);
   printRes "add_f (Some 1) None (Some 3)    " @@ add_f (Some 1) None (Some 3);
   printRes "add_f (Some 1) None None        " @@ add_f (Some 1) None (Some 3);
-  print_endline ""
+  print_endline "";
+  (* add_g: Elm style. NOTE: as with Elm, the arguments are processed in reverse. *)
+  printRes2 "add_g (Ok 1) (Ok 2) (Ok 3)                  " @@ add_g (Ok 1) (Ok 2) (Ok 3);
+  printRes2 "add_g (Error 'Oops1') (Ok 2) (Ok 3)         " @@ add_g (Error "Oops1") (Ok 2) (Ok 3);
+  printRes2 "add_g (Ok 1) (Error 'Oops2') (Ok 3)         " @@ add_g (Ok 1) (Error "Oops2") (Ok 3);
+  printRes2 "add_g (Ok 1) (Error 'Oops2') (Error 'Oops3')" @@ add_g (Ok 1) (Error "Oops2") (Error "Oops3");
+  print_endline "";
 ;;
 
 let succeed b = if b then Ok 1 else Error "Oops!"
