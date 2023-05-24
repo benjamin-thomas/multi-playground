@@ -51,6 +51,24 @@ let add_e x y z =
   Some(x + y +z )
   [@@ocamlformat "disable"]
 
+(*
+ See the Elm blog post at: https://thoughtbot.com/blog/running-out-of-maps
+
+ Rather than using `and_map`, I'll use the function name `apply` (it seems fit?)
+ *)
+let apply oa ob =
+  match oa, ob with
+  | Some value, Some fn -> Some (fn value)
+  | _, _ -> None
+;;
+
+let add_f a b c =
+  Some (fun x y z -> x + y + z)
+    |> apply a
+    |> apply b
+    |> apply c
+;;
+
 (* MAIN *)
 
 let printRes header fn =
@@ -89,6 +107,12 @@ let _ =
   printRes "add_e None (Some 2) (Some 3)    " @@ add_e None (Some 2) (Some 3);
   printRes "add_e (Some 1) None (Some 3)    " @@ add_e (Some 1) None (Some 3);
   printRes "add_e (Some 1) None None        " @@ add_e (Some 1) None (Some 3);
+  print_endline "";
+  (* add_f: Elm style *)
+  printRes "add_f (Some 1) (Some 2) (Some 3)" @@ add_f (Some 1) (Some 2) (Some 3);
+  printRes "add_f None (Some 2) (Some 3)    " @@ add_f None (Some 2) (Some 3);
+  printRes "add_f (Some 1) None (Some 3)    " @@ add_f (Some 1) None (Some 3);
+  printRes "add_f (Some 1) None None        " @@ add_f (Some 1) None (Some 3);
   print_endline ""
 ;;
 
