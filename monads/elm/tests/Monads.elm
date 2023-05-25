@@ -60,16 +60,27 @@ suite =
                     andMap : Result x a -> Result x (a -> b) -> Result x b
                     andMap =
                         Result.map2 (|>)
+
+                    -- https://nicolas.perriault.net/code/2021/elm-result-pipeline/
+                    apply : Result x a -> Result x (a -> b) -> Result x b
+                    apply result =
+                        Result.andThen (\partial -> Result.map partial result)
+
+                    apply2 x fn =
+                        Result.map fn x
                 in
-                Expect.equal (Ok 10)
-                    (Ok (\a b c d -> a + b + c + d)
+                Expect.equal (Ok 28)
+                    (Ok (\a b c d e f g -> a + b + c + d + e + f + g)
                         |> andMap (Ok 1)
                         |> andMap (Ok 2)
-                        |> andMap (Ok 3)
-                        |> andMap (Ok 4)
+                        |> apply (Ok 3)
+                        |> Result.andThen (\fn -> Result.map fn (Ok 4))
+                        |> Result.andThen (\fn -> Ok 5 |> Result.map fn)
+                        |> Result.andThen (apply2 (Ok 6))
+                        |> Result.map2 (\a b -> b a) (Ok 7)
                     )
         , test "Error is returned if the computation pipeline fails at any point" <|
-            \_ ->
+            \() ->
                 let
                     andMap : Result x a -> Result x (a -> b) -> Result x b
                     andMap =
@@ -83,4 +94,57 @@ suite =
                         |> andMap (Err "Oops @3")
                         |> andMap (Ok 4)
                     )
+        , test "let's apply the elm-result-pipeline style to Maybe" <|
+            \() ->
+                let
+                    apply : Maybe a -> Maybe (a -> b) -> Maybe b
+                    apply m =
+                        Maybe.andThen (\partial -> Maybe.map partial m)
+                in
+                Expect.equal (Just 13)
+                    (Just (\a b c -> a * b + c)
+                        |> apply (Just 3)
+                        |> apply (Just 4)
+                        |> apply (Just 1)
+                    )
+        , test "this method processes the args in a more logical order (see `andMap` above)" <|
+            \_ ->
+                let
+                    -- https://nicolas.perriault.net/code/2021/elm-result-pipeline/
+                    apply : Result x a -> Result x (a -> b) -> Result x b
+                    apply result =
+                        Result.andThen (\partial -> Result.map partial result)
+                in
+                Expect.equal (Err "2")
+                    (Ok (\a b c d -> a + b + c + d)
+                        |> apply (Ok 1)
+                        |> apply (Err "2")
+                        |> apply (Err "3")
+                        |> apply (Ok 4)
+                    )
+        , test "verbose style" <|
+            \() ->
+                let
+                    myComputation =
+                        Ok (\a b c -> a + b + c)
+                            |> Result.andThen (\fn -> Result.map fn (Ok 1))
+                            |> Result.andThen (\fn -> Result.map fn (Ok 2))
+                            |> Result.andThen (\fn -> Result.map fn (Ok 3))
+                in
+                Expect.equal (Ok 6) myComputation
+        , test "in verbose style, the computation does stop on the first error" <|
+            \() ->
+                Expect.equal (Err "2")
+                    (Ok (\a b c -> a + b + c)
+                        |> Result.andThen (\fn -> Result.map fn (Ok 1))
+                        |> Result.andThen (\fn -> Result.map fn (Err "2"))
+                        |> Result.andThen (\fn -> Result.map fn (Err "3"))
+                    )
+        , test "simplify" <|
+            \() ->
+                let
+                    myComputation =
+                        Ok identity |> Result.andThen (\fn -> Result.map fn (Ok 1))
+                in
+                Expect.equal (Ok 1) myComputation
         ]
