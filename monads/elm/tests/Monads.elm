@@ -147,4 +147,16 @@ suite =
                         Ok identity |> Result.andThen (\fn -> Result.map fn (Ok 1))
                 in
                 Expect.equal (Ok 1) myComputation
+        , test "reversing the flow re-introduces indenting by the formatter" <|
+            \() ->
+                let
+                    apply x =
+                        Result.andThen (\partial -> Result.map partial x)
+                in
+                Expect.equal (Ok 13)
+                    (apply (Ok 1) <|
+                        apply (Ok 4) <|
+                            apply (Ok 3) <|
+                                Ok (\a b c -> a * b + c)
+                    )
         ]
