@@ -6,40 +6,40 @@
  * echo monads.ml | entr -c ocaml /_
  *)
 
-let add_a x y z =
-  match x with
+let add_a a b c =
+  match a with
   | None -> None
-  | Some x_ -> (
-      match y with
+  | Some x -> (
+      match b with
       | None -> None
-      | Some y_ -> (
-          match z with
+      | Some y -> (
+          match c with
           | None -> None
-          | Some z_ -> Some (x_ + y_ + z_)))
+          | Some z -> Some (x + y + z)))
 ;;
 
-let add_b x y z =
-  Option.bind x (fun x_ ->
-    Option.bind y (fun y_ ->
-      Option.bind z (fun z_ ->
-        Some (x_ + y_ + z_)
+let add_b a b c =
+  Option.bind a (fun x ->
+    Option.bind b (fun y ->
+      Option.bind c (fun z ->
+        Some (x + y + z)
       )
     )
   )
   [@@ocamlformat "disable"]
 
-let add_c x y z =
-  match (x, y, z) with
+let add_c a b c =
+  match (a, b, c) with
   | Some x, Some y, Some z -> Some (x + y + z)
   | _ -> None
 ;;
 
 let ( let* ) = Option.bind
 
-let add_d x y z =
-  let* x = x in
-  let* y = y in
-  let* z = z in
+let add_d a b c =
+  let* x = a in
+  let* y = b in
+  let* z = c in
   Some (x + y + z)
 ;;
 
@@ -49,10 +49,10 @@ let ( >>= ) opt f =
   | None -> None
 ;;
 
-let add_e x y z =
-  x >>= fun x ->
-  y >>= fun y ->
-  z >>= fun z ->
+let add_e a b c =
+  a >>= fun x ->
+  b >>= fun y ->
+  c >>= fun z ->
   Some(x + y +z )
   [@@ocamlformat "disable"]
 
