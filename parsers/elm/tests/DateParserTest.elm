@@ -1,7 +1,7 @@
 module DateParserTest exposing (..)
 
 import Expect
-import Parser exposing ((|.), (|=), Parser, Problem(..), andThen, chompWhile, getChompedString, int, problem, run, succeed, symbol)
+import Parser exposing ((|.), (|=), Parser, Problem(..), andThen, chompIf, chompWhile, getChompedString, int, map, problem, run, succeed, symbol)
 import String
 import Test exposing (..)
 
@@ -11,6 +11,50 @@ type alias Date =
     , month : Int
     , day : Int
     }
+
+
+parseDigits : Test
+parseDigits =
+    let
+        suceedOnDigit : String -> Parser Int
+        suceedOnDigit str =
+            case String.toInt str of
+                Just x ->
+                    succeed x
+
+                Nothing ->
+                    problem <| str ++ " is not a digit!"
+
+        digit : Parser Int
+        digit =
+            chompIf Char.isDigit
+                |> getChompedString
+                |> andThen suceedOnDigit
+
+        digit2 : Parser Int
+        digit2 =
+            chompIf Char.isDigit
+                |> getChompedString
+                |> andThen
+                    (\first ->
+                        chompIf Char.isDigit
+                            |> getChompedString
+                            |> andThen
+                                (\second ->
+                                    suceedOnDigit (first ++ second)
+                                )
+                    )
+    in
+    describe "parseDigits"
+        [ test "parse 1 digit" <|
+            \() ->
+                run digit "1x"
+                    |> Expect.equal (Ok 1)
+        , test "parse 2 digits" <|
+            \() ->
+                run digit2 "12x"
+                    |> Expect.equal (Ok 12)
+        ]
 
 
 dateParser : Test
