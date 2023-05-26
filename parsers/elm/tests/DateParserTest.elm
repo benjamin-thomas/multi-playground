@@ -1,7 +1,7 @@
 module DateParserTest exposing (..)
 
 import Expect
-import Parser exposing ((|.), (|=), Parser, Problem(..), andThen, chompIf, chompWhile, getChompedString, int, map, problem, run, succeed, symbol)
+import Parser exposing ((|.), (|=), Parser, Problem(..), andThen, chompIf, chompWhile, getChompedString, int, oneOf, problem, run, succeed, symbol)
 import String
 import Test exposing (..)
 
@@ -13,11 +13,108 @@ type alias Date =
     }
 
 
+parseDigits2 : Test
+parseDigits2 =
+    let
+        validateDigit : Int -> String -> Parser Int
+        validateDigit cnt str =
+            case String.toInt str of
+                Nothing ->
+                    problem <| str ++ " is not a digit!"
+
+                Just x ->
+                    let
+                        len =
+                            String.length str
+                    in
+                    if len /= cnt then
+                        problem <|
+                            "Expected digit of length "
+                                ++ String.fromInt cnt
+                                ++ ", not "
+                                ++ String.fromInt len
+
+                    else
+                        succeed x
+
+        digits : Int -> Parser Int
+        digits cnt =
+            chompWhile Char.isDigit
+                |> getChompedString
+                |> andThen (validateDigit cnt)
+    in
+    describe "parseDigits2"
+        [ test "parse 1 digit" <|
+            \() ->
+                run (digits 1) "1x"
+                    |> Expect.equal (Ok 1)
+        , test "parse 2 digits" <|
+            \() ->
+                run (digits 2) "12x"
+                    |> Expect.equal (Ok 12)
+        , test "parse 4 digits" <|
+            \() ->
+                run (digits 4) "1234."
+                    |> Expect.equal (Ok 1234)
+        , test "fails if input has more" <|
+            \() ->
+                run (digits 4) "12345x"
+                    |> Expect.equal
+                        (Err
+                            [ { col = 6
+                              , problem = Problem "Expected digit of length 4, not 5"
+                              , row = 1
+                              }
+                            ]
+                        )
+        , test "fails if input has less" <|
+            \() ->
+                run (digits 4) "123x4"
+                    |> Expect.equal
+                        (Err
+                            [ { col = 4
+                              , problem = Problem "Expected digit of length 4, not 3"
+                              , row = 1
+                              }
+                            ]
+                        )
+        , test "I should now be able to parse a date" <|
+            let
+                dateParser2 sep =
+                    succeed Date
+                        |= digits 4
+                        |. symbol sep
+                        |= digits 2
+                        |. symbol sep
+                        |= digits 2
+            in
+            \() ->
+                run (dateParser2 ".") "2023.05.26"
+                    |> Expect.equal
+                        (Ok { year = 2023, month = 5, day = 26 })
+        , test "hyphen sep, I'll clean up thet tests later..." <|
+            let
+                dateParser2 sep =
+                    succeed Date
+                        |= digits 4
+                        |. symbol sep
+                        |= digits 2
+                        |. symbol sep
+                        |= digits 2
+            in
+            \() ->
+                run (dateParser2 "-") "2023-05-26"
+                    |> Expect.equal
+                        (Ok { year = 2023, month = 5, day = 26 })
+        ]
+
+
 parseDigits : Test
 parseDigits =
+    {- This whole approach is overcomplicated. Plus the falsey branch will never trigger... -}
     let
-        suceedOnDigit : String -> Parser Int
-        suceedOnDigit str =
+        succeedOnDigit : String -> Parser Int
+        succeedOnDigit str =
             case String.toInt str of
                 Just x ->
                     succeed x
@@ -29,10 +126,10 @@ parseDigits =
         digit =
             chompIf Char.isDigit
                 |> getChompedString
-                |> andThen suceedOnDigit
+                |> andThen succeedOnDigit
 
-        digit2 : Parser Int
-        digit2 =
+        digit2Verbose : Parser Int
+        digit2Verbose =
             chompIf Char.isDigit
                 |> getChompedString
                 |> andThen
@@ -41,9 +138,22 @@ parseDigits =
                             |> getChompedString
                             |> andThen
                                 (\second ->
-                                    suceedOnDigit (first ++ second)
+                                    succeedOnDigit (first ++ second)
                                 )
                     )
+
+        digitStr : Parser String
+        digitStr =
+            chompIf Char.isDigit
+                |> getChompedString
+
+        digitPair : Parser Int
+        digitPair =
+            (succeed Tuple.pair
+                |= digitStr
+                |= digitStr
+            )
+                |> andThen (\( a, b ) -> succeedOnDigit (a ++ b))
     in
     describe "parseDigits"
         [ test "parse 1 digit" <|
@@ -52,7 +162,11 @@ parseDigits =
                     |> Expect.equal (Ok 1)
         , test "parse 2 digits" <|
             \() ->
-                run digit2 "12x"
+                run digit2Verbose "12x"
+                    |> Expect.equal (Ok 12)
+        , test "parse 2 digits, again" <|
+            \() ->
+                run digitPair "12x"
                     |> Expect.equal (Ok 12)
         ]
 
@@ -77,6 +191,10 @@ dateParser =
 
         parser : Parser Date
         parser =
+            let
+                apply x =
+                    Parser.andThen (\partial -> Parser.map partial x)
+            in
             succeed Date
                 |= digit
                 |. symbol "."
