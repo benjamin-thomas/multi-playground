@@ -11,7 +11,7 @@ When creating a new Spago project, you can use
 to generate this file without the comments in this block.
 -}
 { name = "monads"
-, dependencies = [ "assert", "console", "effect", "maybe", "prelude" ]
+, dependencies = [ "assert", "console", "effect", "either", "maybe", "prelude" ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
 }
