@@ -22,3 +22,6 @@
 
 # Haskell
 **/dist-newstyle/
+
+# TypeScript
+**/node_modules/
