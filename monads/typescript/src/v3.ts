@@ -1,21 +1,21 @@
 interface Err<T> {
-    readonly kind: 'Err'
-    readonly val: T
+    readonly kind: 'Err';
+    readonly val: T;
 }
 
 interface Ok<T> {
-    readonly kind: 'Ok'
-    readonly val: T
+    readonly kind: 'Ok';
+    readonly val: T;
 }
 
-type Result<A, B> = Err<A> | Ok<B>
+type Result<A, B> = Err<A> | Ok<B>;
 
 export function err<T>(v: T): Err<T> {
-    return {kind: 'Err', val: v}
+    return { kind: 'Err', val: v };
 }
 
 export function ok<T>(v: T): Ok<T> {
-    return {kind: 'Ok', val: v}
+    return { kind: 'Ok', val: v };
 }
 
 function bind<X, A, B>(
@@ -31,7 +31,7 @@ function bind<X, A, B>(
 
 export function add(a: Result<string, number>, b: Result<string, number>): Result<string, number> {
     return bind(a, (x) => {
-        return bind(b, y => {
+        return bind(b, (y) => {
             return ok(x + y);
         });
     });
@@ -43,7 +43,7 @@ function map2<A, B, V, X>(
     resB: Result<X, B>)
     : Result<X, V> {
     return bind(resA, (x) => {
-        return bind(resB, y => {
+        return bind(resB, (y) => {
             return ok(fn(x, y));
         });
     });
