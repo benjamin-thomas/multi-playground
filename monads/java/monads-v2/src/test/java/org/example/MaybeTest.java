@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MaybeTest {
 
-    Maybe<Integer> add(
+    private static Maybe<Integer> add(
             Maybe<Integer> ma,
             Maybe<Integer> mb
     ) {
@@ -21,7 +21,7 @@ class MaybeTest {
             Maybe<Integer> mb,
             Maybe<Integer> mc
     ) {
-        return map2(
+        return Maybe.map3(
                 (a, b, c) -> a * b * c,
                 ma, mb, mc
         );

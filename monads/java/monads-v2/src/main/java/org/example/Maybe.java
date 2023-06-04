@@ -2,12 +2,6 @@ package org.example;
 
 import java.util.function.Function;
 
-@FunctionalInterface
-interface TriFunction<A, B, C, V> {
-    V apply(A a, B b, C c);
-}
-
-
 public record Maybe<T>(T val) {
     public static <T> Maybe<T> just(T val) {
         return new Maybe<>(val);
@@ -28,7 +22,7 @@ public record Maybe<T>(T val) {
         }
     }
 
-    public static <A, B, C, V> Maybe<V> map2(
+    public static <A, B, C, V> Maybe<V> map3(
             TriFunction<A, B, C, V> fn,
             Maybe<A> ma,
             Maybe<B> mb,
