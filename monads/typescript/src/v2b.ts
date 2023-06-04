@@ -42,6 +42,21 @@ function map2<A, B, V>(
     });
 }
 
+function map3<A, B, C, V>(
+    fn: (a: A, b: B, c: C) => V,
+    ma: Option<A>,
+    mb: Option<B>,
+    mc: Option<C>,
+): Option<V> {
+    return bind(ma, (a) => {
+        return bind(mb, (b) => {
+            return bind(mc, (c) => {
+                return some(fn(a, b, c));
+            });
+        });
+    });
+}
+
 export function add(
     a: Option<number>,
     b: Option<number>
@@ -61,5 +76,18 @@ export function mul(
         (x, y) => x * y,
         a,
         b,
+    );
+}
+
+export function addMore(
+    ma: Option<number>,
+    mb: Option<number>,
+    mc: Option<number>,
+): Option<number> {
+    return map3(
+        (a, b, c) => a + b + c,
+        ma,
+        mb,
+        mc,
     );
 }
