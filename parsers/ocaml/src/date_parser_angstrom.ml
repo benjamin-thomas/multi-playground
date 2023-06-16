@@ -7,7 +7,7 @@ let ( >>| ) = A.( >>| )
 type date = { year : B.int; month : B.int; day : B.int } [@@deriving sexp, ord]
 
 (* chomp one ore more digits *)
-let digits =
+let digits : int A.t =
   A.take_while1 (function
     | '0' .. '9' -> true
     | _ -> false)
@@ -28,11 +28,14 @@ let digits' n =
 let%test_unit "parsing digits" =
   let ( => ) = [%test_eq: (B.int, B.string) B.Result.t] in
   let parse_digits = A.parse_string ~consume:All digits in
+  let parse_digits' s = parse_digits s |> Result.map_error (fun _ -> "Digit err: " ^ s) in
   ()
-  ; parse_digits "1"   => Ok 1
-  ; parse_digits "2"   => Ok 2
-  ; parse_digits "12"  => Ok 12
-  ; parse_digits "12x" => Error ": end_of_input"
+  ; parse_digits  "1"   => Ok 1
+  ; parse_digits  "2"   => Ok 2
+  ; parse_digits  "12"  => Ok 12
+  ; parse_digits  "12x" => Error ": end_of_input"
+  ; parse_digits' "12x" => Error "Digit err: 12x"
+  ; parse_digits' "12"  => Ok 12
 [@@ocamlformat "disable"]
 
 (* a date parser, not quite valid *)
