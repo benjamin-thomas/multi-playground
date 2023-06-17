@@ -1,0 +1,12 @@
+(library
+ (name colissimo)
+ (libraries
+  cohttp
+  cohttp-lwt-unix
+  lwt
+  ptime
+  yojson
+  ppx_deriving_yojson.runtime
+  dedent)
+ (preprocess
+  (pps ppx_deriving_yojson)))
