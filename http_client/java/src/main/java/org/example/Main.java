@@ -3,6 +3,7 @@ package org.example;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.vavr.control.Either;
 import org.example.api.Colissimo;
 import org.example.domain.Delivered;
 import org.example.domain.ShippingStatus;
@@ -10,25 +11,36 @@ import org.example.json.Payload;
 import org.example.json.Payload.Root;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static io.vavr.API.*;
+import static io.vavr.Patterns.$Left;
+import static io.vavr.Patterns.$Right;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        byte[] json = getJson();
-        Root root = parseJson(json);
-        ShippingStatus status = toShippingStatus(root);
+    public static void main(String[] args) {
+        Object output = Match(getJson().flatMap(Main::parseJson)).of(
+                Case($Left($()), leftValue -> leftValue),
+                Case($Right($()), Main::toShippingStatus)
+        );
+        System.out.println(output);
+    }
 
+    private static void printStatus(Root root) {
+        ShippingStatus status = toShippingStatus(root);
         System.out.println("status = " + status);
         System.out.println("Done!");
     }
 
-    private static Root parseJson(byte[] json) throws IOException {
+    private static Either<String, Root> parseJson(byte[] json) {
         ObjectMapper mapper = initMapper();
-        return mapper.readValue(json, Root.class);
+        try {
+            Root root = mapper.readValue(json, Root.class);
+            return Either.right(root);
+        } catch (IOException e) {
+            return Either.left("Parse JSON error: " + e.getMessage());
+        }
     }
 
     private static ShippingStatus toShippingStatus(Root root) {
@@ -43,14 +55,13 @@ public class Main {
             return event
                     .map(evt -> new Delivered(evt.date()));
         });
-        ShippingStatus status = new ShippingStatus(root.shippingStatusCode(), delivered);
-        return status;
+        return new ShippingStatus(root.shippingStatusCode(), delivered);
     }
 
-    private static byte[] getJson() throws IOException {
+    private static Either<String, byte[]> getJson() {
 //        return Files.readAllBytes(Path.of("./data.json"));
-        return Colissimo.fetch("API_KEY",
-                "TRACKING_NUMBER");
+        return Colissimo
+                .fetch("API_KEY", "TRACKING_NUMBER");
     }
 
     private static ObjectMapper initMapper() {

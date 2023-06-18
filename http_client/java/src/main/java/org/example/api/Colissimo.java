@@ -12,36 +12,49 @@ import java.net.URL;
 public class Colissimo {
     public static Either<String, byte[]> fetch(String apiKey, String tracking) {
         // @formatter:off
-        getConnection(tracking)
+        return getConnection(tracking)
         .flatMap(conn   -> setVerb(conn, "GET")
-        .flatMap(_void  -> setProperty(conn, "accept", "application/json")
-        .flatMap(_void2 -> setProperty(conn, "X-Okapi-Key", apiKey)
-        .flatMap(__void3 -> {
-            try {
-                // FIXME: I'm really going against the language at this point!
-                int code = conn.getResponseCode();} catch (IOException e) {
-                throw new RuntimeException(e);
-}
-        }))));
+        .flatMap(void1  -> setProperty(conn, "accept", "application/json")
+        .flatMap(void2 -> setProperty(conn, "X-Okapi-Key", apiKey)
+        .flatMap(void3 -> getResponseCode(conn))
+        .flatMap(code -> {
+            if (code == 200 || code == 404){
+
+                return Either.right((Void) null);
+            } else {
+                return Either.left(String.format("Request returned status: %d", code));
+            }
+        })
+        .flatMap(void4 -> getBody(conn))
+        )));
         // @formatter:on
+    }
 
 
-        int statusCode = connection.getResponseCode();
-        if (statusCode == 200) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            StringBuilder responseBody = new StringBuilder();
+    private static Either<String, byte[]> getBody(HttpURLConnection conn) {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+
+            StringBuilder body = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
-                responseBody.append(line);
+                body.append(line);
             }
             reader.close();
-            return Either.right(responseBody.toString().getBytes());
-        } else {
-            // Handle non-200 status codes
-            String errorMsg = String.format("Request returned status: %d", statusCode);
-            throw new IOException(errorMsg);
-        }
+            return Either.right(body.toString().getBytes());
 
+        } catch (IOException e) {
+            return Either.left("Could not get HTTP body");
+        }
+    }
+
+    private static Either<String, Integer> getResponseCode(HttpURLConnection conn) {
+        try {
+            return Either.right(conn.getResponseCode());
+        } catch (IOException e) {
+            return Either.left("Failed to get response code!");
+        }
     }
 
     @SuppressWarnings("SameParameterValue")
