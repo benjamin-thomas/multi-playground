@@ -1,0 +1,22 @@
+cabal-version:      2.4
+name:               httpc
+version:            0.0.1
+
+executable httpc
+    main-is:          Main.hs
+
+    build-depends:
+        base ^>=4.16.4.0
+      , wreq
+      , aeson
+      , lens
+      , lens-aeson
+      , containers
+      , time
+      , bytestring
+      , text
+      , utf8-string
+
+    hs-source-dirs:   bin
+    default-language: Haskell2010
+
