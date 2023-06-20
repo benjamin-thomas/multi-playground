@@ -1,8 +1,7 @@
-#!/usr/bin/env utop
-
-(* `utop` gives me access to Unix, which I can't open with `ocaml` *)
-
-(* echo ./init.ml | entr -c /_ *)
+(*
+   dune exec ./main.exe
+   dune exec ./main.exe -w
+ *)
 
 let dbName = "mpg_db"
 let createDb = Printf.sprintf "CREATE DATABASE %s;" dbName
@@ -45,12 +44,12 @@ let log msg =
 let fail_on_err n = if n = 0 then () else failwith (Printf.sprintf "Exit code: %d" n)
 
 let psqlRoot cmd =
-  let relPath = Filename.dirname Sys.argv.(0) ^ "/psql_root" in
+  let relPath = Filename.dirname Sys.argv.(0) ^ "/../../../psql_root" in
   Filename.quote_command relPath [ "-qc"; cmd ]
 ;;
 
 let psql cmd =
-  let relPath = Filename.dirname Sys.argv.(0) ^ "/psql" in
+  let relPath = Filename.dirname Sys.argv.(0) ^ "/../../../psql" in
   Filename.quote_command relPath [ "-qc"; cmd ]
 ;;
 
