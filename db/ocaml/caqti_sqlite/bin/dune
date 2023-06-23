@@ -1,0 +1,3 @@
+(executables
+ (names setup setup2)
+ (libraries lib lwt))
