@@ -1,5 +1,5 @@
 (library
- (name lib)
+ (name repo)
  (libraries caqti caqti-lwt caqti-driver-sqlite3)
  (preprocess
   (pps lwt_ppx)))

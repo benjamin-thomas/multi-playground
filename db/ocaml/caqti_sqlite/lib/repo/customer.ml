@@ -53,9 +53,9 @@ type customer = { id : int; first_name : string; last_name : string }
 let create_tbl (module Conn : Caqti_lwt.CONNECTION) = Conn.exec Q.create_tbl
 
 (*
-   open Lib
+   open Repo
    let conn = Init.caqti_conn ();;
-   Customer_repo.insert conn "Robert" "Doe";;
+   Customer.insert conn "Robert" "Doe";;
  *)
 let insert (module Conn : Caqti_lwt.CONNECTION) first_name last_name =
   Conn.exec Q.insert (first_name, last_name)

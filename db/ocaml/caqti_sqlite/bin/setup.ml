@@ -1,8 +1,9 @@
 (*
  * rm ./db.sqlite3;dune exec ./bin/setup.exe
  *)
-module Customer_repo = Lib.Customer_repo
-module Init = Lib.Init
+
+module Customer_repo = Repo.Customer
+module Init = Repo.Init
 
 (*
  * UTILS
