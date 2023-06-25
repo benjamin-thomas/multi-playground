@@ -1,3 +1,5 @@
 (library
  (name lib)
- (libraries caqti caqti-lwt caqti-driver-sqlite3))
+ (libraries caqti caqti-lwt caqti-driver-sqlite3)
+ (preprocess
+  (pps lwt_ppx)))

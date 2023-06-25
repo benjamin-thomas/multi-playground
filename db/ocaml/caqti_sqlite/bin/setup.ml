@@ -1,27 +1,29 @@
-(* ./bin/setup.ml *)
+(*
+ * rm ./db.sqlite3;dune exec ./bin/setup.exe
+ *)
+module Customer_repo = Lib.Customer_repo
+module Init = Lib.Init
 
-module Queries = Lib__Queries
+(*
+ * UTILS
+ *)
+let info_log fmt = Printf.printf ("[INFO] " ^^ fmt ^^ "\n%!")
+let err_log fmt = Printf.printf ("[ERROR] " ^^ fmt ^^ "\n%!")
 
-let ( >>=? ) promise fn =
-  let ( >>= ) = Lwt.bind in
-  promise >>= fun result ->
-  match result with
-  | Ok x -> fn x
-  | Error err -> Lwt.return (Error err)
-;;
-
+(*
+ * BOOTSTRAP
+ *)
 let () =
-  let log s = Printf.printf "[LOG] setup: %s\n" s in
-  let promise1 = Queries.create_customers_tbl () in
-  let promise2 = Queries.create_products_tbl () in
-
+  let open Lwt_result.Syntax in
+  let conn = Init.caqti_conn () in
   let all_promises : (unit, 'error) result Lwt.t =
-    promise1 >>=? fun () ->
-    promise2 >>=? fun () ->
+    let* () = Customer_repo.create_tbl conn () in
+    let* () = Customer_repo.insert conn "John" "Doe" in
+    let* () = Customer_repo.insert conn "Jane" "Doe" in
     Lwt.return_ok ()
   in
 
   Lwt_main.run all_promises |> function
-  | Ok () -> log "Success!"
-  | Error _ -> log "Something went wrong :("
-[@@ocamlformat "disable"]
+  | Ok () -> info_log "Setup OK!"
+  | Error e -> err_log "%s" (Caqti_error.show e)
+;;
