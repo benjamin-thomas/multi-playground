@@ -74,49 +74,26 @@ let find_by_id (module Conn : Caqti_lwt.CONNECTION) id =
   Conn.find Q.find_by_id id
 ;;
 
-let find_by_id' (module Conn : Caqti_lwt.CONNECTION) id =
-  let open Lwt.Syntax in
-  let* res = Conn.find Q.find_by_id id in
-  Lwt.return (Result.map_error Caqti_error.show res)
-;;
-
-[@@@warning "-33-26"]
-
-let%test_unit "find_by_id" =
-  let ( => ) = [%test_eq: (Base.string, Base.string) Base.Result.t] in
-  (* let open Lwt_result.Syntax in *)
-  let open Lwt.Syntax in
-  let conn = Init.caqti_conn () in
-  (* let find_by_id = find_by_id' conn in *)
-  let prom = find_by_id' conn 1 in
-  match (Lwt_main.run prom ) with
-  | Error _ -> failwith "wat"
-  | Ok x ->
-    (
-
-      Ok x => Ok "1"
-      )
-  (* ()
-  ; find_by_id 1  => Ok "John"
-  ; find_by_id 1  => Ok "John2" *)
-[@@ocamlformat "disable"]
-
-(*
- dune runtest -w
-
- FIXME: db is read in a _build/.sandbox/{RANDOM} folder
- *)
-let%test_unit "find_by_id2" =
+let%test_unit "integrate: find_by_id" =
   let ( => ) = [%test_eq: (Base.string, Base.string) Base.Result.t] in
   let open Lwt_result.Syntax in
   let conn = Init.caqti_conn () in
-  (* let find_by_id = find_by_id' conn in *)
-  let prom = find_by_id' conn 1 in
-  Lwt_main.run prom => Ok "John"
-  (* ()
-  ; find_by_id 1  => Ok "John"
-  ; find_by_id 1  => Ok "John2" *)
-[@@ocamlformat "disable"]
+  let setup : (unit, 'error) result Lwt.t =
+    let* () = create_tbl conn () in
+    let* () = insert conn "John" "Doe" in
+    Lwt.return_ok ()
+  in
+  match Lwt_main.run setup with
+  | Error _ -> failwith "setup"
+  | Ok () ->
+      let prom =
+        let open Lwt.Syntax in
+        let* res = find_by_id conn 1 in
+        let res = Result.map_error Caqti_error.show res in
+        Lwt.return res
+      in
+      Lwt_main.run prom => Ok "John"
+;;
 
 let update (module Conn : Caqti_lwt.CONNECTION) id (c : customer) =
   Conn.exec Q.update (id, c.first_name, c.last_name)
