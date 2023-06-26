@@ -1,5 +1,6 @@
 (library
  (name repo)
+ (inline_tests)
  (libraries caqti caqti-lwt caqti-driver-sqlite3)
  (preprocess
-  (pps lwt_ppx)))
+  (pps lwt_ppx ppx_inline_test ppx_assert)))
