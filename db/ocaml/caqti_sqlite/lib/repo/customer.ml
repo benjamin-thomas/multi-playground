@@ -48,12 +48,12 @@ module Q = struct
   ;;
 end
 
-type customer = { id : int; first_name : string; last_name : string }
+type customer = { first_name : string; last_name : string }
 
 let create_tbl (module Conn : Caqti_lwt.CONNECTION) = Conn.exec Q.create_tbl
 
 (*
-   open Repo
+   open Repo;;
    let conn = Init.caqti_conn ();;
    Customer.insert conn "Robert" "Doe";;
  *)
@@ -61,10 +61,8 @@ let insert (module Conn : Caqti_lwt.CONNECTION) first_name last_name =
   Conn.exec Q.insert (first_name, last_name)
 ;;
 
-let delete (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
-  Conn.exec Q.delete c.id
-;;
+let delete (module Conn : Caqti_lwt.CONNECTION) id = Conn.exec Q.delete id
 
-let update (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
-  Conn.exec Q.update (c.id, c.first_name, c.last_name)
+let update (module Conn : Caqti_lwt.CONNECTION) id (c : customer) =
+  Conn.exec Q.update (id, c.first_name, c.last_name)
 ;;
