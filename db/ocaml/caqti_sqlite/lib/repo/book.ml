@@ -11,21 +11,20 @@ module Q = struct
   *)
 
   let count = Caqti_type.(unit ->! int) {|
-  SELECT COUNT(*) FROM books
+  SELECT COUNT(*) FROM book
   |}
 
   let insert =
-    Caqti_type.(tup2 int string ->. unit)
-      {|
-  INSERT INTO books (author_id, title) VALUES (?, ?)
+    Caqti_type.(string ->. unit) {|
+  INSERT INTO book (title) VALUES (?)
   |}
   ;;
 end
 
-type book = { author_id : int; title : string }
+type book = { title : string }
 
 let count (module Conn : Caqti_lwt.CONNECTION) = Conn.find Q.count
 
 let insert (module Conn : Caqti_lwt.CONNECTION) (b : book) =
-  Conn.exec Q.insert (b.author_id, b.title)
+  Conn.exec Q.insert b.title
 ;;

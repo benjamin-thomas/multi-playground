@@ -13,7 +13,7 @@ module Q = struct
   let insert =
     Caqti_type.(tup2 string string ->. unit)
       {|
-       INSERT INTO authors (first_name, last_name)
+       INSERT INTO author (first_name, last_name)
        VALUES (?, ?)
     |}
   ;;
@@ -22,7 +22,7 @@ module Q = struct
     Caqti_type.(int ->! string)
       {|
        SELECT first_name
-       FROM authors
+       FROM author
        WHERE id = ?
       |}
   ;;
@@ -30,7 +30,7 @@ module Q = struct
   let update =
     Caqti_type.(tup3 int string string ->. unit)
       {|
-       UPDATE authors
+       UPDATE author
          SET first_name =  ?
        , SET last_name = ?
        WHERE id = ?
@@ -40,14 +40,14 @@ module Q = struct
   let delete =
     Caqti_type.(int ->. unit)
       {|
-       DELETE FROM authors
+       DELETE FROM author
        WHERE id = ?
     |}
   ;;
 
   let count =
     Caqti_type.(unit ->! int) {|
-    SELECT COUNT(*) FROM authors
+    SELECT COUNT(*) FROM author
     |}
   ;;
 end

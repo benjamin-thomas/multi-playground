@@ -21,25 +21,35 @@ let caqti_conn () =
 module Q = struct
   open Caqti_request.Infix
 
-  let create_authors_tbl =
+  let create_author_tbl =
     Caqti_type.(unit ->. unit)
       {|
-       CREATE TABLE authors
+       CREATE TABLE author
          ( id INTEGER PRIMARY KEY AUTOINCREMENT
-         , first_name VARCHAR(255) UNIQUE
+         , first_name VARCHAR(255)
          , last_name VARCHAR(255)
          )
     |}
   ;;
 
-  let create_books_tbl =
+  let create_book_tbl =
     Caqti_type.(unit ->. unit)
       {|
-       CREATE TABLE books
+       CREATE TABLE book
          ( id INTEGER PRIMARY KEY AUTOINCREMENT
-         , author_id NOT NULL REFERENCES authors(id)
          , title VARCHAR(255) UNIQUE
          , last_name VARCHAR(255)
+         )
+    |}
+  ;;
+
+  let create_bibliography_tbl =
+    Caqti_type.(unit ->. unit)
+      {|
+       CREATE TABLE bibliography
+         ( id INTEGER PRIMARY KEY AUTOINCREMENT
+         , book_id NOT NULL REFERENCES book(id)
+         , author_id NOT NULL REFERENCES author(id)
          )
     |}
   ;;
@@ -55,8 +65,64 @@ end
 let create_tables (module Conn : Caqti_lwt.CONNECTION) =
   let open Lwt_result.Syntax in
   let* () = Conn.start () in
-  let* () = Conn.exec Q.create_authors_tbl () in
-  let* () = Conn.exec Q.create_books_tbl () in
+  let* () = Conn.exec Q.create_author_tbl () in
+  let* () = Conn.exec Q.create_book_tbl () in
+  let* () = Conn.exec Q.create_bibliography_tbl () in
   let* () = Conn.commit () in
   Lwt.return_ok ()
 ;;
+
+let transact (module Conn : Caqti_lwt.CONNECTION) fn =
+  let open Lwt_result.Syntax in
+  let* () = Conn.start () in
+  let* () = fn () in
+  let* () = Conn.commit () in
+  Lwt.return_ok ()
+;;
+
+(*
+   $ dune utop
+   utop # open Repo;;
+   utop # let conn = Init.caqti_conn ();;
+   utop # Init.create_tables conn;;
+   utop # Init.seed conn;;
+ *)
+
+let seed conn =
+  transact conn @@ fun () ->
+  let open Lwt_result.Syntax in
+  (* John Wihtington, author_id=1 *)
+  let* () =
+    Author.insert conn { first_name = "John"; last_name = "Whitington" }
+  in
+  let* () = Book.insert conn { title = "OCaml from the Very Beginning" } in
+  let* () = Book.insert conn { title = "More OCaml" } in
+  let* () = Bibliography.insert conn { author_id = 1; book_id = 1 } in
+  let* () = Bibliography.insert conn { author_id = 1; book_id = 2 } in
+
+  (* Graham Hutton, id=2 *)
+  let* () =
+    Author.insert conn { first_name = "Graham"; last_name = "Hutton" }
+  in
+  let* () = Book.insert conn { title = "Programming in Haskell" } in
+  let* () = Bibliography.insert conn { author_id = 2; book_id = 3 } in
+
+  (* Anil Madhavapeddy, id=3 ; Yaron Minsky, id=4 *)
+  let* () =
+    Author.insert conn { first_name = "Anil"; last_name = "Madhavapeddy" }
+  in
+  let* () = Author.insert conn { first_name = "Yaron"; last_name = "Minsky" } in
+  let* () = Book.insert conn { title = "Real World OCaml" } in
+  let* () = Bibliography.insert conn { author_id = 3; book_id = 4 } in
+  let* () = Bibliography.insert conn { author_id = 4; book_id = 4 } in
+  Lwt.return_ok ()
+;;
+
+(*
+
+SELECT b.id AS book_id, b.title, a.first_name, a.last_name
+FROM bibliography AS x
+JOIN author AS a ON x.author_id = a.id
+JOIN book AS b ON x.book_id = b.id;
+
+*)
