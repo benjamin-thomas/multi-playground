@@ -2,7 +2,7 @@ module Author = Repo.Author
 
 let%test_unit "count returns 0, when there are no rows" =
   let ( => ) = [%test_eq: (Base.int, Base.string) Base.Result.t] in
-  let conn, setup = Setup.init_db () in
+  let conn, setup = Setup.fresh_db () in
   match Lwt_main.run setup with
   | Error e -> Setup.fail e
   | Ok () ->
@@ -17,7 +17,7 @@ let%test_unit "count returns 0, when there are no rows" =
 
 let%test_unit "count returns 1, after inserting Jane" =
   let ( => ) = [%test_eq: (Base.int, Base.string) Base.Result.t] in
-  let conn, setup = Setup.init_db () in
+  let conn, setup = Setup.fresh_db () in
   match Lwt_main.run setup with
   | Error e -> Setup.fail e
   | Ok () ->
@@ -38,7 +38,7 @@ let%test_unit "count returns 1, after inserting Jane" =
 
 let%test_unit "find_by_id" =
   let ( => ) = [%test_eq: (Base.string, Base.string) Base.Result.t] in
-  let conn, setup = Setup.init_db () in
+  let conn, setup = Setup.fresh_db () in
   match Lwt_main.run setup with
   | Error e -> Setup.fail e
   | Ok () ->

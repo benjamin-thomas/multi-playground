@@ -1,6 +1,6 @@
 let fail e = failwith @@ "test setup failed: " ^ Caqti_error.show e
 
-let init_db () =
+let fresh_db () =
   let path = Sys.getcwd () ^ "/db.sqlite3" in
   let () = if Sys.file_exists path then Sys.remove path in
 
