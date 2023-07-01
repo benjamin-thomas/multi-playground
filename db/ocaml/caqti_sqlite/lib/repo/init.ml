@@ -17,3 +17,46 @@ let caqti_conn () =
   in
   (module (val caqti_conn) : Caqti_lwt.CONNECTION)
 ;;
+
+module Q = struct
+  open Caqti_request.Infix
+
+  let create_authors_tbl =
+    Caqti_type.(unit ->. unit)
+      {|
+       CREATE TABLE authors
+         ( id INTEGER PRIMARY KEY AUTOINCREMENT
+         , first_name VARCHAR(255) UNIQUE
+         , last_name VARCHAR(255)
+         )
+    |}
+  ;;
+
+  let create_books_tbl =
+    Caqti_type.(unit ->. unit)
+      {|
+       CREATE TABLE books
+         ( id INTEGER PRIMARY KEY AUTOINCREMENT
+         , author_id NOT NULL REFERENCES authors(id)
+         , title VARCHAR(255) UNIQUE
+         , last_name VARCHAR(255)
+         )
+    |}
+  ;;
+end
+
+(*
+   $ dune utop
+   utop # open Repo;;
+   utop # let conn = Init.caqti_conn ();;
+   utop # Init.create_tables conn;;
+ *)
+
+let create_tables (module Conn : Caqti_lwt.CONNECTION) =
+  let open Lwt_result.Syntax in
+  let* () = Conn.start () in
+  let* () = Conn.exec Q.create_authors_tbl () in
+  let* () = Conn.exec Q.create_books_tbl () in
+  let* () = Conn.commit () in
+  Lwt.return_ok ()
+;;
