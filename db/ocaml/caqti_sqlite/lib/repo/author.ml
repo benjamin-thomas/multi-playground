@@ -27,6 +27,14 @@ module Q = struct
       |}
   ;;
 
+  let ls =
+    Caqti_type.(unit ->* string)
+      {|
+       SELECT first_name
+       FROM author
+      |}
+  ;;
+
   let update =
     Caqti_type.(tup3 int string string ->. unit)
       {|
@@ -67,6 +75,8 @@ let insert (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
 let find_by_id (module Conn : Caqti_lwt.CONNECTION) id =
   Conn.find Q.find_by_id id
 ;;
+
+let ls (module Conn : Caqti_lwt.CONNECTION) = Conn.collect_list Q.ls
 
 let update (module Conn : Caqti_lwt.CONNECTION) id (c : customer) =
   Conn.exec Q.update (id, c.first_name, c.last_name)

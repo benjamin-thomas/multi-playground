@@ -56,3 +56,29 @@ let%test_unit "find_by_id" =
       in
       Lwt_main.run prom => Ok "John"
 ;;
+
+let%test_unit "read many" =
+  let ( => ) = [%test_eq: (Base.string Base.list, Base.string) Base.Result.t] in
+  let conn, setup = Setup.fresh_db () in
+  match Lwt_main.run setup with
+  | Error e -> Setup.fail e
+  | Ok () ->
+      let prom =
+        let res =
+          let open Lwt_result.Syntax in
+          let prom =
+            let* () =
+              Author.insert conn { first_name = "John"; last_name = "Doe" }
+            in
+            let* () =
+              Author.insert conn { first_name = "Jane"; last_name = "Doe" }
+            in
+            let* found = Author.ls conn () in
+            Lwt.return_ok found
+          in
+          Lwt_main.run prom |> Result.map_error Caqti_error.show
+        in
+        Lwt.return res
+      in
+      Lwt_main.run prom => Ok [ "John"; "Jane" ]
+;;
