@@ -37,8 +37,8 @@ module Q = struct
       {|
        CREATE TABLE book
          ( id               INTEGER PRIMARY KEY AUTOINCREMENT
-         , title            TEXT NOT NULL UNIQUE CHECK (LENGTH(title) < 255)
-         , back_cover_descr TEXT NULL
+         , title            TEXT    NOT NULL UNIQUE CHECK (LENGTH(title) < 255)
+         , back_cover_descr TEXT        NULL
          )
     |}
   ;;
@@ -90,32 +90,46 @@ let transact (module Conn : Caqti_lwt.CONNECTION) fn =
  *)
 
 let seed conn =
-  transact conn @@ fun () ->
-  let open Lwt_result.Syntax in
-  (* John Wihtington, author_id=1 *)
-  let* () =
-    (* Use a `RETURNING id` clause instead, once sqlite > v3.35 becomes widely available *)
-    Author.insert conn { first_name = "John"; last_name = "Whitington" }
-  in
-  let* () = Book.insert conn { title = "OCaml from the Very Beginning" } in
-  let* () = Book.insert conn { title = "More OCaml" } in
-  let* () = Bibliography.insert conn { author_id = 1; book_id = 1 } in
-  let* () = Bibliography.insert conn { author_id = 1; book_id = 2 } in
+  (* NOTE: using a `RETURNING id` clause requires sqlite >= v3.35, ok on Ubuntu 22.04, not ok on Ubuntu 20.04 *)
+  let add_data () =
+    let add_author = Author.insert' conn in
+    let add_book = Book.insert' conn in
+    let add_bibli = Bibliography.insert conn in
+    let open Lwt_result.Syntax in
+    (*
+        John Whitington
+      *)
+    let* john_whitigton =
+      add_author { first_name = "John"; last_name = "Whitington" }
+    in
+    let* ocaml_ftvb = add_book { title = "OCaml from the Very Beginning" } in
+    let* more_ocaml = add_book { title = "More OCaml" } in
+    let* () = add_bibli { author_id = john_whitigton; book_id = ocaml_ftvb } in
+    let* () = add_bibli { author_id = john_whitigton; book_id = more_ocaml } in
 
-  (* Graham Hutton, id=2 *)
-  let* () =
-    Author.insert conn { first_name = "Graham"; last_name = "Hutton" }
-  in
-  let* () = Book.insert conn { title = "Programming in Haskell" } in
-  let* () = Bibliography.insert conn { author_id = 2; book_id = 3 } in
+    (*
+        Graham Hutton
+      *)
+    let* graham_hutton =
+      add_author { first_name = "Graham"; last_name = "Hutton" }
+    in
+    let* prog_with_haskell = add_book { title = "Programming in Haskell" } in
+    let* () =
+      add_bibli { author_id = graham_hutton; book_id = prog_with_haskell }
+    in
 
-  (* Anil Madhavapeddy, id=3 ; Yaron Minsky, id=4 *)
-  let* () =
-    Author.insert conn { first_name = "Anil"; last_name = "Madhavapeddy" }
+    (* Anil Madhavapeddy and Yaron Minsky *)
+    let* anil_madhavapeddy =
+      add_author { first_name = "Anil"; last_name = "Madhavapeddy" }
+    in
+    let* yaron_minsky =
+      add_author { first_name = "Yaron"; last_name = "Minsky" }
+    in
+    let* rwo = add_book { title = "Real World OCaml" } in
+    let* () = add_bibli { author_id = anil_madhavapeddy; book_id = rwo } in
+    let* () = add_bibli { author_id = yaron_minsky; book_id = rwo } in
+
+    Lwt.return_ok ()
   in
-  let* () = Author.insert conn { first_name = "Yaron"; last_name = "Minsky" } in
-  let* () = Book.insert conn { title = "Real World OCaml" } in
-  let* () = Bibliography.insert conn { author_id = 3; book_id = 4 } in
-  let* () = Bibliography.insert conn { author_id = 4; book_id = 4 } in
-  Lwt.return_ok ()
+  transact conn add_data
 ;;

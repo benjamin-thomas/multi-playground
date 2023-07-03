@@ -18,6 +18,14 @@ module Q = struct
     |}
   ;;
 
+  let insert' =
+    Caqti_type.(tup2 string string ->! int)
+      {|
+       INSERT INTO author (first_name, last_name)
+       VALUES (?, ?) RETURNING id
+    |}
+  ;;
+
   let find_by_id =
     Caqti_type.(int ->! string)
       {|
@@ -70,6 +78,10 @@ type customer = { first_name : string; last_name : string }
  *)
 let insert (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
   Conn.exec Q.insert (c.first_name, c.last_name)
+;;
+
+let insert' (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
+  Conn.find Q.insert' (c.first_name, c.last_name)
 ;;
 
 let find_by_id (module Conn : Caqti_lwt.CONNECTION) id =
