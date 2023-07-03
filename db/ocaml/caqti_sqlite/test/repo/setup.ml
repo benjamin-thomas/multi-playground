@@ -2,6 +2,7 @@ let fail e = failwith @@ "test setup failed: " ^ Caqti_error.show e
 
 let fresh_db () =
   let path = Sys.getcwd () ^ "/db.sqlite3" in
+  (* Remove the test database, we are inside the dune build directory here. *)
   let () = if Sys.file_exists path then Sys.remove path in
 
   let conn = Repo.Init.caqti_conn () in

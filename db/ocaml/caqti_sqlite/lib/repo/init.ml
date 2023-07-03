@@ -1,6 +1,6 @@
 (*
-   "Unpack" the `Caqti_lwt.CONNECTION` module into `db`,
-   by creating an anonymous `first-class module` with the `val` keyword (on the left).
+   "Unpack" the `Caqti_lwt.CONNECTION` into a module, by creating an anonymous
+    `first-class module` with the `val` keyword (on the left).
 
    See: https://dev.realworldocaml.org/first-class-modules.html
   *)
@@ -25,9 +25,9 @@ module Q = struct
     Caqti_type.(unit ->. unit)
       {|
        CREATE TABLE author
-         ( id INTEGER PRIMARY KEY AUTOINCREMENT
-         , first_name VARCHAR(255)
-         , last_name VARCHAR(255)
+         ( id         INTEGER PRIMARY KEY AUTOINCREMENT
+         , first_name TEXT NOT NULL CHECK (LENGTH(first_name) < 255)
+         , last_name  TEXT NOT NULL CHECK (LENGTH(last_name)  < 255)
          )
     |}
   ;;
@@ -36,9 +36,9 @@ module Q = struct
     Caqti_type.(unit ->. unit)
       {|
        CREATE TABLE book
-         ( id INTEGER PRIMARY KEY AUTOINCREMENT
-         , title VARCHAR(255) UNIQUE
-         , last_name VARCHAR(255)
+         ( id               INTEGER PRIMARY KEY AUTOINCREMENT
+         , title            TEXT NOT NULL UNIQUE CHECK (LENGTH(title) < 255)
+         , back_cover_descr TEXT NULL
          )
     |}
   ;;
@@ -47,9 +47,9 @@ module Q = struct
     Caqti_type.(unit ->. unit)
       {|
        CREATE TABLE bibliography
-         ( id INTEGER PRIMARY KEY AUTOINCREMENT
-         , book_id NOT NULL REFERENCES book(id)
-         , author_id NOT NULL REFERENCES author(id)
+         ( id        INTEGER PRIMARY KEY AUTOINCREMENT
+         , book_id   INTEGER NOT NULL REFERENCES book(id)
+         , author_id INTEGER NOT NULL REFERENCES author(id)
          )
     |}
   ;;
@@ -86,6 +86,7 @@ let transact (module Conn : Caqti_lwt.CONNECTION) fn =
    utop # let conn = Init.caqti_conn ();;
    utop # Init.create_tables conn;;
    utop # Init.seed conn;;
+   utop # Bibliography.ls conn ();;
  *)
 
 let seed conn =
@@ -93,6 +94,7 @@ let seed conn =
   let open Lwt_result.Syntax in
   (* John Wihtington, author_id=1 *)
   let* () =
+    (* Use a `RETURNING id` clause instead, once sqlite > v3.35 becomes widely available *)
     Author.insert conn { first_name = "John"; last_name = "Whitington" }
   in
   let* () = Book.insert conn { title = "OCaml from the Very Beginning" } in
@@ -117,12 +119,3 @@ let seed conn =
   let* () = Bibliography.insert conn { author_id = 4; book_id = 4 } in
   Lwt.return_ok ()
 ;;
-
-(*
-
-SELECT b.id AS book_id, b.title, a.first_name, a.last_name
-FROM bibliography AS x
-JOIN author AS a ON x.author_id = a.id
-JOIN book AS b ON x.book_id = b.id;
-
-*)

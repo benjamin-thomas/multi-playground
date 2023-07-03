@@ -40,7 +40,7 @@ module Q = struct
       {|
        UPDATE author
          SET first_name =  ?
-       , SET last_name = ?
+       , SET last_name  = ?
        WHERE id = ?
       |}
   ;;

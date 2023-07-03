@@ -36,10 +36,17 @@ module Q = struct
   let ls =
     Caqti_type.(unit ->* tup4 int string string string)
       {|
-       SELECT x.id, b.title, a.first_name, a.last_name
+       SELECT x.id
+            , b.title
+            , a.first_name
+            , a.last_name
        FROM bibliography AS x
-       INNER JOIN author AS a ON x.author_id = a.id
-       INNER JOIN book AS b ON x.book_id = b.id
+
+       INNER JOIN author AS a
+               ON a.id = x.author_id
+
+       INNER JOIN book AS b
+               ON b.id = x.book_id
     |}
   ;;
 end

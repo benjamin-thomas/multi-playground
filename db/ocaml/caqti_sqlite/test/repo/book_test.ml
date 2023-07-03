@@ -26,11 +26,6 @@ let%test_unit "count returns 1, after inserting OFTVB" =
         let res =
           let open Lwt_result.Syntax in
           let prom =
-            (* let* () =
-                 (* Use a `RETURNING id` clause instead, once sqlite > v3.35 becomes widely available *)
-                 Author.insert conn
-                   { first_name = "John"; last_name = "Whitington" }
-               in *)
             let* () =
               Book.insert conn { title = "OCaml from the Very Beginning" }
             in
