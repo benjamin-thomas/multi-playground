@@ -4,7 +4,7 @@ services:
 
   # Initialize the DB container:
   #   docker-compose up db
-  #   ./init.ml && ./psql
+  #   cd ./_init/ && dune exec ./main.exe && cd .. && ./psql
   #
   # Destroy all services and their related storage:
   #   docker-compose down --volumes

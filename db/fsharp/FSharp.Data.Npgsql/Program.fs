@@ -33,11 +33,9 @@ let test_list_tuples =
     res |> printfn "Customers as tuples: %A"
 
 type Customer =
-    {
-        Id: int
-        Name: string
-        AlternativeName: string option
-    }
+    { Id: int
+      Name: string
+      AltName: string option }
 
 let getCustomersCmd =
     Db.CreateCommand<"SELECT id, name, alternative_name FROM customers WHERE id < @maxId LIMIT @limit", ResultType.Records>
@@ -46,11 +44,9 @@ let getCustomersCmd =
 type GeneratedFromGetCustomerCmdExec = Db.``alternative_name:Option<String>, id:Int32, name:String``
 
 let mapFromGetCustomersCmd (x: GeneratedFromGetCustomerCmdExec) : Customer =
-    {
-        Id = x.id
-        Name = x.name
-        AlternativeName = None
-    }
+    { Id = x.id
+      Name = x.name
+      AltName = None }
 
 let test_list_records =
     use cmd = getCustomersCmd (connStr)
@@ -60,9 +56,7 @@ let test_list_records =
 
     res |> printfn "Customers as records: %A"
 
-    res
-    |> List.map mapFromGetCustomersCmd
-    |> printfn "Mapped customers: %A"
+    res |> List.map mapFromGetCustomersCmd |> printfn "Mapped customers: %A"
 
 let test_list_anon_records =
     use cmd =
@@ -76,11 +70,9 @@ let test_list_anon_records =
 
     res
     |> List.map (fun c ->
-        {|
-            Id = c.id
-            Name = c.name
-            AlternativeName = c.alternative_name
-        |})
+        {| Id = c.id
+           Name = c.name
+           AlternativeName = c.alternative_name |})
 
 
 [<EntryPoint>]

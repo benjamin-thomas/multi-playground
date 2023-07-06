@@ -25,3 +25,5 @@
 
 # TypeScript
 **/node_modules/
+
+*/**/.idea/
