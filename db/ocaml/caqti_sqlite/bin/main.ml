@@ -31,14 +31,14 @@ let print_item padding (_id, book_name, author_fname, author_lname) =
 let () =
   let open Lwt_result.Syntax in
   let conn = Init.caqti_conn () in
-  let all_promises : ('found, 'error) result Lwt.t =
+  let work : ('bibliography, 'error) result Lwt.t =
     let* () = Init.create_tables conn in
     let* () = Init.seed conn in
     let* found = Bibliography.ls conn () in
     Lwt.return_ok found
   in
 
-  Lwt_main.run all_promises |> function
+  Lwt_main.run work |> function
   | Ok bibliography ->
       let longest = longest_book_name bibliography in
       ()
