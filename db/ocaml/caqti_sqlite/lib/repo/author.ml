@@ -11,10 +11,10 @@ module Q = struct
   *)
 
   let insert =
-    Caqti_type.(tup2 string string ->. unit)
+    Caqti_type.(tup3 string (option string) string ->. unit)
       {|
-       INSERT INTO author (first_name, last_name)
-       VALUES (?, ?)
+       INSERT INTO author (first_name, middle_name, last_name)
+       VALUES (?, ?, ?)
       |}
   ;;
 
@@ -68,7 +68,8 @@ module Q = struct
   ;;
 end
 
-type customer = { first_name : string; last_name : string }
+type author =
+  { first_name : string; middle_name : string option; last_name : string }
 
 (*
    $ dune utop
@@ -76,12 +77,12 @@ type customer = { first_name : string; last_name : string }
    utop # let conn = Init.caqti_conn ();;
    utop # Author.insert conn "Robert" "Doe" "robert@example.com";;
  *)
-let insert (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
-  Conn.exec Q.insert (c.first_name, c.last_name)
+let insert (module Conn : Caqti_lwt.CONNECTION) (a : author) =
+  Conn.exec Q.insert (a.first_name, a.middle_name, a.last_name)
 ;;
 
-let insert' (module Conn : Caqti_lwt.CONNECTION) (c : customer) =
-  Conn.find Q.insert' (c.first_name, c.last_name)
+let insert' (module Conn : Caqti_lwt.CONNECTION) (a : author) =
+  Conn.find Q.insert' (a.first_name, a.last_name)
 ;;
 
 let find_by_id (module Conn : Caqti_lwt.CONNECTION) id =
@@ -90,8 +91,8 @@ let find_by_id (module Conn : Caqti_lwt.CONNECTION) id =
 
 let ls (module Conn : Caqti_lwt.CONNECTION) = Conn.collect_list Q.ls
 
-let update (module Conn : Caqti_lwt.CONNECTION) id (c : customer) =
-  Conn.exec Q.update (id, c.first_name, c.last_name)
+let update (module Conn : Caqti_lwt.CONNECTION) id (a : author) =
+  Conn.exec Q.update (id, a.first_name, a.last_name)
 ;;
 
 let delete (module Conn : Caqti_lwt.CONNECTION) id = Conn.exec Q.delete id

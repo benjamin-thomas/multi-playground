@@ -24,7 +24,8 @@ let%test_unit "count returns 1, after inserting Jane" =
       let prom =
         let open Lwt.Syntax in
         let* ins_res =
-          Author.insert conn { first_name = "Jane"; last_name = "Doe" }
+          Author.insert conn
+            { first_name = "Jane"; middle_name = None; last_name = "Doe" }
         in
         let* cnt_res = Author.count conn () in
         let res =
@@ -45,7 +46,8 @@ let%test_unit "find_by_id" =
       let prom =
         let open Lwt.Syntax in
         let* ins_res =
-          Author.insert conn { first_name = "John"; last_name = "Doe" }
+          Author.insert conn
+            { first_name = "John"; middle_name = None; last_name = "Doe" }
         in
         let* find_res = Author.find_by_id conn 1 in
         let res =
@@ -68,10 +70,12 @@ let%test_unit "read many" =
           let open Lwt_result.Syntax in
           let prom =
             let* () =
-              Author.insert conn { first_name = "John"; last_name = "Doe" }
+              Author.insert conn
+                { first_name = "John"; middle_name = None; last_name = "Doe" }
             in
             let* () =
-              Author.insert conn { first_name = "Jane"; last_name = "Doe" }
+              Author.insert conn
+                { first_name = "Jane"; middle_name = None; last_name = "Doe" }
             in
             let* found = Author.ls conn () in
             Lwt.return_ok found

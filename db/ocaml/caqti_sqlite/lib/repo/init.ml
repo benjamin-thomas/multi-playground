@@ -25,9 +25,10 @@ module Q = struct
     Caqti_type.(unit ->. unit)
       {|
        CREATE TABLE author
-         ( id         INTEGER PRIMARY KEY AUTOINCREMENT
-         , first_name TEXT NOT NULL CHECK (LENGTH(first_name) < 255)
-         , last_name  TEXT NOT NULL CHECK (LENGTH(last_name)  < 255)
+         ( id          INTEGER PRIMARY KEY AUTOINCREMENT
+         , first_name  TEXT NOT NULL CHECK (LENGTH(first_name) < 255)
+         , middle_name TEXT     NULL CHECK (LENGTH(first_name) < 255)
+         , last_name   TEXT NOT NULL CHECK (LENGTH(last_name)  < 255)
          )
     |}
   ;;
@@ -100,7 +101,8 @@ let seed conn =
         John Whitington
       *)
     let* john_whitigton =
-      add_author { first_name = "John"; last_name = "Whitington" }
+      add_author
+        { first_name = "John"; middle_name = None; last_name = "Whitington" }
     in
     let* ocaml_ftvb = add_book { title = "OCaml from the Very Beginning" } in
     let* more_ocaml = add_book { title = "More OCaml" } in
@@ -111,7 +113,8 @@ let seed conn =
         Graham Hutton
       *)
     let* graham_hutton =
-      add_author { first_name = "Graham"; last_name = "Hutton" }
+      add_author
+        { first_name = "Graham"; middle_name = None; last_name = "Hutton" }
     in
     let* prog_with_haskell = add_book { title = "Programming in Haskell" } in
     let* () =
@@ -120,10 +123,12 @@ let seed conn =
 
     (* Anil Madhavapeddy and Yaron Minsky *)
     let* anil_madhavapeddy =
-      add_author { first_name = "Anil"; last_name = "Madhavapeddy" }
+      add_author
+        { first_name = "Anil"; middle_name = None; last_name = "Madhavapeddy" }
     in
     let* yaron_minsky =
-      add_author { first_name = "Yaron"; last_name = "Minsky" }
+      add_author
+        { first_name = "Yaron"; middle_name = None; last_name = "Minsky" }
     in
     let* rwo = add_book { title = "Real World OCaml" } in
     let* () = add_bibli { author_id = anil_madhavapeddy; book_id = rwo } in
