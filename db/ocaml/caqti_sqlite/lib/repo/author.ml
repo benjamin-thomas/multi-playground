@@ -15,7 +15,7 @@ module Q = struct
       {|
        INSERT INTO author (first_name, last_name)
        VALUES (?, ?)
-    |}
+      |}
   ;;
 
   let insert' =
@@ -23,7 +23,7 @@ module Q = struct
       {|
        INSERT INTO author (first_name, last_name)
        VALUES (?, ?) RETURNING id
-    |}
+      |}
   ;;
 
   let find_by_id =
@@ -58,7 +58,7 @@ module Q = struct
       {|
        DELETE FROM author
        WHERE id = ?
-    |}
+      |}
   ;;
 
   let count =

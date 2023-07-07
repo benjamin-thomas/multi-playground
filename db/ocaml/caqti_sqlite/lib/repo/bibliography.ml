@@ -47,7 +47,7 @@ module Q = struct
 
        INNER JOIN book AS b
                ON b.id = x.book_id
-    |}
+      |}
   ;;
 end
 
