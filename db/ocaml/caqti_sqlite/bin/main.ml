@@ -14,10 +14,10 @@ module Bibliography = Repo.Bibliography
 let info_log fmt = Printf.printf ("[INFO] " ^^ fmt ^^ "\n%!")
 let err_log fmt = Printf.printf ("[ERROR] " ^^ fmt ^^ "\n%!")
 
-let longuest_book_name bibliography =
+let longest_book_name bibliography =
   List.fold_left
-    (fun longuest (_id, book_name, _author_fname, _author_lname) ->
-      max longuest (String.length book_name))
+    (fun longest (_id, book_name, _author_fname, _author_lname) ->
+      max longest (String.length book_name))
     0 bibliography
 ;;
 
@@ -40,13 +40,13 @@ let () =
 
   Lwt_main.run all_promises |> function
   | Ok bibliography ->
-      let longuest = longuest_book_name bibliography in
+      let longest = longest_book_name bibliography in
       ()
       ; info_log "Setup OK!"
       ; print_newline ()
       ; print_endline "Bibliography"
       ; print_endline "============"
       ; print_newline ()
-      ; List.iter (print_item (longuest + 1)) bibliography
+      ; List.iter (print_item (longest + 1)) bibliography
   | Error e -> err_log "%s" (Caqti_error.show e)
 ;;
