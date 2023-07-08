@@ -1,21 +1,15 @@
-(* module Row = struct
-     type t =
-       { book_id : int; title : string; first_name : string; last_name : string }
-   end *)
+module Row = struct
+  type t =
+    { book_id : int
+    ; title : string
+    ; first_name : string
+    ; middle_name : string option
+    ; last_name : string
+    }
+end
 
 module Q = struct
   open Caqti_request.Infix
-  (* open Caqti_type.Std
-
-     let row =
-       let encode Row.{ book_id; title; first_name; last_name } =
-         Ok (book_id, title, first_name, last_name)
-       in
-       let decode (book_id, title, first_name, last_name) =
-         Ok Row.{ book_id; title; first_name; last_name }
-       in
-       let rep = Caqti_type.(tup4 int string string string) in
-       custom ~encode ~decode rep *)
 
   (*
     Caqti infix operators
@@ -33,12 +27,18 @@ module Q = struct
       |}
   ;;
 
+  let x = Caqti_type.(unit ->* tup2 (tup2 string string) string)
+
+  (* Example showing how to go beyond tup4 (there is no tup5) *)
   let ls =
-    Caqti_type.(unit ->* tup4 int string string string)
+    Caqti_type.(
+      unit
+      ->* tup2 int (tup2 string (tup2 string (tup2 (option string) string))))
       {|
        SELECT x.id
             , b.title
             , a.first_name
+            , a.middle_name
             , a.last_name
        FROM bibliography AS x
 

@@ -15,6 +15,13 @@ let%test_unit "use seed, then read many rows" =
         let open Lwt_result.Syntax in
         let* () = Repo.Init.seed conn in
         let* found = Bibliography.ls conn () in
+        (* Example showing how to go beyond tup4 (there is no tup5) *)
+        let found =
+          List.map
+            (fun (id, (title, (first_name, (_middle_name, last_name)))) ->
+              (id, title, first_name, last_name))
+            found
+        in
         Lwt.return_ok found
       in
       let ran = Lwt_main.run prom |> Result.map_error Caqti_error.show in
