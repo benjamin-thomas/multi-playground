@@ -49,6 +49,21 @@ module Q = struct
                ON b.id = x.book_id
       |}
   ;;
+
+  let ls' =
+    Caqti_type.(unit ->* tup2 int string)
+      {|
+       SELECT x.id
+            , b.title
+       FROM bibliography AS x
+
+       INNER JOIN author AS a
+               ON a.id = x.author_id
+
+       INNER JOIN book AS b
+               ON b.id = x.book_id
+      |}
+  ;;
 end
 
 type bibliography = { author_id : int; book_id : int }
@@ -64,3 +79,79 @@ let insert (module Conn : Caqti_lwt.CONNECTION) (b : bibliography) =
    utop # Bibliography.ls conn ();;
  *)
 let ls (module Conn : Caqti_lwt.CONNECTION) = Conn.collect_list Q.ls
+let ls' (module Conn : Caqti_lwt.CONNECTION) = Conn.collect_list Q.ls'
+
+let ls'' =
+  [%rapper
+    get_many
+      {sql|
+
+        SELECT @int{x.id}
+             , @string{b.title}
+
+       FROM bibliography AS x
+
+       INNER JOIN author AS a
+               ON a.id = x.author_id
+
+       INNER JOIN book AS b
+               ON b.id = x.book_id
+
+        |sql}]
+;;
+
+let ls''' =
+  [%rapper
+    get_many
+      {sql|
+
+        SELECT @int{x.id}
+             , @string{b.title}
+             , @string{a.first_name}
+             , @string?{a.middle_name}
+             , @string{a.last_name}
+
+       FROM bibliography AS x
+
+       INNER JOIN author AS a
+               ON a.id = x.author_id
+
+       INNER JOIN book AS b
+               ON b.id = x.book_id
+
+        |sql}]
+;;
+
+open Sexplib.Std
+
+type ls4_row =
+  { id : int
+  ; title : string
+  ; first_name : string
+  ; middle_name : string option
+  ; last_name : string
+  }
+[@@deriving sexp, ord]
+
+let ls4 =
+  [%rapper
+    get_many
+      {sql|
+
+        SELECT x.id          AS @int{id}
+             , b.title       AS @string{title}
+             , a.first_name  AS @string{first_name}
+             , a.middle_name AS @string?{middle_name}
+             , a.last_name   AS @string{last_name}
+
+       FROM bibliography AS x
+
+       INNER JOIN author AS a
+               ON a.id = x.author_id
+
+       INNER JOIN book AS b
+               ON b.id = x.book_id
+
+        |sql}
+      record_out]
+;;

@@ -3,4 +3,11 @@
  (inline_tests)
  (libraries repo)
  (preprocess
-  (pps lwt_ppx ppx_inline_test ppx_assert)))
+  (pps
+   lwt_ppx
+   ppx_inline_test
+   ppx_assert
+   ppx_deriving.ord
+   ; ppx_deriving.eq
+   ; ppx_deriving.show
+   ppx_jane)))
