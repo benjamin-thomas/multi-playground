@@ -43,6 +43,14 @@ module Q = struct
       |}
   ;;
 
+  let ls' =
+    Caqti_type.(unit ->* tup2 int string)
+      {|
+       SELECT id, first_name
+       FROM author
+      |}
+  ;;
+
   let update =
     Caqti_type.(tup3 int string string ->. unit)
       {|
@@ -90,6 +98,7 @@ let find_by_id (module Conn : Caqti_lwt.CONNECTION) id =
 ;;
 
 let ls (module Conn : Caqti_lwt.CONNECTION) = Conn.collect_list Q.ls
+let ls' (module Conn : Caqti_lwt.CONNECTION) = Conn.collect_list Q.ls'
 
 let update (module Conn : Caqti_lwt.CONNECTION) id (a : author) =
   Conn.exec Q.update (id, a.first_name, a.last_name)

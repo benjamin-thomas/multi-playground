@@ -138,3 +138,83 @@ let seed conn =
   in
   transact conn add_data
 ;;
+
+let add_author conn first_name last_name : (unit, 'error) result Lwt.t =
+  Author.insert conn { first_name; middle_name = None; last_name }
+;;
+
+let seed2 conn : (unit, 'error) result Lwt.t =
+  let ( let* ) = Lwt_result.bind in
+  let* () = add_author conn "John" "Doe" in
+  let* () = add_author conn "Jane" "Doe" in
+  let* () = add_author conn "Robert" "Doe" in
+  Lwt.return_ok ()
+;;
+
+let seed3 conn : (unit, 'error) result Lwt.t =
+  let%lwt res = add_author conn "John" "Doe" in
+  match res with
+  | Error e -> Lwt.return_error e
+  | Ok () -> Lwt.return_ok ()
+;;
+
+let seed4 conn : (unit, 'error) result Lwt.t =
+  match%lwt add_author conn "John" "Doe" with
+  | Error e -> Lwt.return_error e
+  | Ok () -> Lwt.return_ok ()
+;;
+
+let bind fn then_ : (unit, 'error) result Lwt.t =
+  match%lwt fn with
+  | Error e -> Lwt.return_error e
+  | Ok () -> then_ ()
+;;
+
+let seed5 conn : (unit, 'error) result Lwt.t =
+  let ( >>= ) = bind in
+
+  Lwt.return_ok ()             >>= fun () ->
+  add_author conn "John" "Doe" >>= fun () ->
+  add_author conn "Jane" "Doe" >>= fun () ->
+  add_author conn "Robert" "Doe"
+[@@ocamlformat "disable"]
+
+let seed6 conn : (unit, 'error) result Lwt.t =
+  let bind = Lwt_result.bind in
+  let%monad () = add_author conn "John" "Doe" in
+  let%m () = add_author conn "Jane" "Doe" in
+  let%m () = add_author conn "Robert" "Doe" in
+  Lwt.return_ok ()
+;;
+
+let seed7 conn : (unit, 'error) result Lwt.t =
+  let bind = Lwt_result.bind in
+  Lwt.return_ok ()
+  ; %m add_author conn "John" "Doe"
+  ; %m add_author conn "Jane" "Doe"
+  ; %m add_author conn "Robert" "Doe"
+  [@@ocamlformat "disable"]
+
+let seed8 conn : (unit, 'error) result Lwt.t =
+  let%lwt_res () = add_author conn "John" "Doe" in
+  let%lwt_res () = add_author conn "Jane" "Doe" in
+  let%lwt_res () = add_author conn "Robert" "Doe" in
+  Lwt.return_ok ()
+;;
+
+let seed9 conn : (unit, 'error) result Lwt.t =
+  Lwt.return_ok ()
+  ; %lwt_res add_author conn "John" "Doe"
+  ; %lwt_res add_author conn "Jane" "Doe"
+  ; %lwt_res add_author conn "Robert" "Doe"
+[@@ocamlformat "disable"]
+
+let double n =
+  let%opt x = n in
+  Some (x * 2)
+;;
+
+let double_async =
+  let%lwt_res x = Lwt.return_ok 1 in
+  Lwt.return_ok (x * 2)
+;;

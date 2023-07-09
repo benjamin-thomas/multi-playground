@@ -1,0 +1,4 @@
+(library
+ (name lwt_res_ppx)
+ (kind ppx_rewriter)
+ (libraries lwt ppx_monad))
