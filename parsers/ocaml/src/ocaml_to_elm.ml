@@ -36,25 +36,24 @@ let is_underscore = function
   | _ -> false
 ;;
 
-let skip_ws = A.skip_while is_whitespace
 let ws = A.take_while is_whitespace
 let ws1 = A.take_while1 is_whitespace
-let alpha_lo = A.take_while1 is_alpha_lower
+let alpha_lo1 = A.take_while1 is_alpha_lower
 
 let ident =
   let alpha_under c = is_alpha c || is_underscore c in
 
-  A.satisfy is_alpha_lower  >>= fun first ->
-  A.take_while(alpha_under) >>= fun rest ->
+  A.satisfy is_alpha_lower >>= fun first ->
+  A.take_while alpha_under >>= fun rest ->
   A.return
     @@ (String.make 1 first) ^ rest
 [@@ocamlformat "disable"]
 
-let words = A.sep_by (A.char ' ') alpha_lo
+let words = A.sep_by (A.char ' ') alpha_lo1
 let colon = A.char ':'
 
 let parse_record_attr : record_attr A.t =
-  ws *> ident <* ws1          >>= fun key ->
+  ws    *> ident <* ws1       >>= fun key ->
   colon *> ws *> words <* ws1 >>= fun values ->
   A.return
     @@ Record_attr (key, values)
@@ -69,8 +68,8 @@ let parse_record : record A.t =
   let attrs =
     A.sep_by (A.char ';') parse_record_attr
   in
-  ws *> type_   *> ws1 *> alpha_lo <* ws  <* eq            >>= fun type_name ->
-  ws *> curly_l *> ws  *> attrs    <* ws  <* curly_r <* ws >>= fun attrs ->
+  ws *> type_   *> ws1 *> alpha_lo1 <* ws  <* eq            >>= fun type_name ->
+  ws *> curly_l *> ws  *> attrs     <* ws  <* curly_r <* ws >>= fun attrs ->
 
   A.return
     @@ Record (type_name, attrs)
@@ -112,11 +111,11 @@ let%test_unit "parsing an OCaml record" =
       )
   in
   ()
-  ; parse valid_input => Ok want
+  ; parse valid_input   => Ok want
   ; parse invalid_input => Error ": char '}'"
 [@@ocamlformat "disable"]
 
-let to_camel_case (str : string) : string =
+let to_camel_case str : string =
   let words = String.split ~on:'_' str in
   let words = List.map ~f:String.capitalize words in
   String.concat ~sep:"" words |> String.uncapitalize
@@ -165,6 +164,5 @@ type alias Customer =
   }
 |}
   in
-  ()
-  ; (elm_string_of_record input) => want
+  (elm_string_of_record input) => want
 [@@ocamlformat "disable"]
