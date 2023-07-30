@@ -45,9 +45,8 @@ let words = A.sep_by (A.char ' ') alpha_lo
 let colon = A.char ':'
 
 let parse_record_attr : record_attr A.t =
-  ws *> ident <* ws1 >>= fun key ->
-  ws <* colon <* ws1 >>= fun _ ->
-  words       <* ws1 >>= fun values ->
+  ws *> ident <* ws1          >>= fun key ->
+  colon *> ws *> words <* ws1 >>= fun values ->
   A.return
     @@ Record_attr (key, values)
 [@@ocamlformat "disable"]
