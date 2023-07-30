@@ -2,7 +2,8 @@ module A = Angstrom
 module B = Base
 
 let ( >>= ) = A.( >>= )
-let ( >>| ) = A.( >>| )
+let ( *> ) = A.( *> )
+let ( <* ) = A.( <* )
 
 open Base
 open Printf
@@ -25,7 +26,9 @@ let is_alpha_lower = function
 ;;
 
 let skip_ws = A.skip_while is_whitespace
-let alpha_lower = A.take_while1 is_alpha_lower
+let ws = A.take_while is_whitespace
+let ws1 = A.take_while1 is_whitespace
+let alpha_lo = A.take_while1 is_alpha_lower
 
 let ident =
   A.satisfy is_alpha_lower >>= fun first ->
@@ -38,46 +41,34 @@ let ident =
   A.return ((String.make 1 first) ^ rest)
 [@@ocamlformat "disable"]
 
+let words = A.sep_by (A.char ' ') alpha_lo
+let colon = A.char ':'
+
 let parse_record_attr : record_attr A.t =
-  let parse_vals =
-    A.sep_by (A.char ' ') alpha_lower
-  in
-  skip_ws     >>= fun () ->
-  ident       >>= fun key ->
-  skip_ws     >>= fun () ->
-  A.char ':'  >>= fun _ ->
-  skip_ws     >>= fun () ->
-  parse_vals  >>= fun vals ->
-  skip_ws     >>= fun () ->
-  A.return @@ Record_attr (key, vals)
+  ws *> ident <* ws1 >>= fun key ->
+  ws <* colon <* ws1 >>= fun _ ->
+  words       <* ws1 >>= fun values ->
+  A.return
+    @@ Record_attr (key, values)
 [@@ocamlformat "disable"]
 
+let type_ = A.string "type"
+let eq = A.char '='
+let curly_l = A.char '{'
+let curly_r = A.char '}'
+
 let parse_record : record A.t =
-  let parse_attrs =
+  let attrs =
     A.sep_by (A.char ';') parse_record_attr
   in
-  skip_ws           >>= fun () ->
-  A.string "type"   >>= fun _ ->
-  skip_ws           >>= fun () ->
-  alpha_lower       >>= fun type_name ->
-  skip_ws           >>= fun () ->
-  A.char '='        >>= fun _ ->
-  skip_ws           >>= fun () ->
-  A.char '{'        >>= fun _ ->
-  skip_ws           >>= fun () ->
-  parse_attrs >>= fun attrs ->
-  skip_ws           >>= fun () ->
-  A.char '}'        >>= fun _ ->
-  skip_ws           >>= fun () ->
-  A.return @@ Record (type_name, attrs)
+  ws *> type_   *> ws1 *> alpha_lo <* ws  <* eq            >>= fun type_name ->
+  ws *> curly_l *> ws  *> attrs    <* ws  <* curly_r <* ws >>= fun attrs ->
+
+  A.return
+    @@ Record (type_name, attrs)
 [@@ocamlformat "disable"]
 
 let make_parser parser = A.parse_string ~consume:All parser
-
-let make_parser' parser_name parser input =
-  let parse = A.parse_string ~consume:All parser in
-  parse input |> Result.map_error ~f:(fun _ -> parser_name)
-;;
 
 let%test_unit "parsing an OCaml record" =
   let ( => ) = [%test_eq: (record, string) Result.t] in
@@ -133,7 +124,7 @@ let elm_type (elems : string list) =
   List.map ~f:elm_conv elems |> List.rev |> String.concat ~sep:" "
 ;;
 
-let to_elm (Record (name, lst)) : string =
+let elm_string_of_record (Record (name, lst)) : string =
   let string_of_attr (Record_attr (name, typ)) =
     sprintf "%s : %s" (to_camel_case name) (elm_type typ)
   in
@@ -167,5 +158,5 @@ type alias Customer =
 |}
   in
   ()
-  ; (to_elm input) => want
+  ; (elm_string_of_record input) => want
 [@@ocamlformat "disable"]
