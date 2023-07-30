@@ -25,20 +25,29 @@ let is_alpha_lower = function
   | _ -> false
 ;;
 
+let is_alpha = function
+  | 'a' .. 'z' -> true
+  | 'A' .. 'Z' -> true
+  | _ -> false
+;;
+
+let is_underscore = function
+  | '_' -> true
+  | _ -> false
+;;
+
 let skip_ws = A.skip_while is_whitespace
 let ws = A.take_while is_whitespace
 let ws1 = A.take_while1 is_whitespace
 let alpha_lo = A.take_while1 is_alpha_lower
 
 let ident =
-  A.satisfy is_alpha_lower >>= fun first ->
-  A.take_while1(function
-  | 'a' .. 'z' -> true
-  | 'A' .. 'Z' -> true
-  | '_' -> true
-  | _ -> false
-) >>= fun rest ->
-  A.return ((String.make 1 first) ^ rest)
+  let alpha_under c = is_alpha c || is_underscore c in
+
+  A.satisfy is_alpha_lower  >>= fun first ->
+  A.take_while(alpha_under) >>= fun rest ->
+  A.return
+    @@ (String.make 1 first) ^ rest
 [@@ocamlformat "disable"]
 
 let words = A.sep_by (A.char ' ') alpha_lo
