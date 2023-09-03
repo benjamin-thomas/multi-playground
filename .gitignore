@@ -1,24 +1,27 @@
-*/fsharp/**/bin/
-*/fsharp/**/obj/
-*/fsharp/**/Folder.DotSettings.user
+*/go-simple/dist/*
 
+# Fsharp
+**/fsharp/**/bin/
+**/fsharp/**/obj/
+**/fsharp/**/Folder.DotSettings.user
+
+# Csharp
 */csharp/**/bin/
 */csharp/**/obj/
 
-*/go-simple/dist/*
+# OCaml
+**/ocaml/**/_build/
+**/ocaml/**/*.cmi
+**/ocaml/**/*.cmo
+**/ocaml/**/*.cmx
+**/ocaml/**/*.o
+**/ocaml/**/a.out
 
-*/ocaml/**/_build/
-*/ocaml/**/*.cmi
-*/ocaml/**/*.cmo
-*/ocaml/**/*.cmx
-*/ocaml/**/*.o
-*/ocaml/**/a.out
-
+# Java
 **/.gradle/
-**/build/
+**/java/*.class
 
-*/java/*.class
-
+# Elm
 **/elm-stuff/
 
 # Haskell
@@ -27,4 +30,5 @@
 # TypeScript
 **/node_modules/
 
+# Editor
 */**/.idea/
