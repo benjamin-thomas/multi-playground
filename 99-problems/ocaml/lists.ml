@@ -16,13 +16,16 @@ let rec last = function
 ;;
 
 let%expect_test _ =
+  let print int_opt =
+    int_opt |> Option.map print_int |> Option.value ~default:()
+  in
   ()
-  ; last [] |> Option.map print_int |> Option.value ~default:()
+  ; print @@ last []
   ; [%expect ""]
   ; ()
-  ; last [ 1 ] |> Option.map print_int |> Option.value ~default:()
+  ; print @@ last [ 1 ]
   ; [%expect "1"]
   ; ()
-  ; last [ 1; 2 ] |> Option.map print_int |> Option.value ~default:()
+  ; print @@ last [ 1; 2 ]
   ; [%expect "2"]
 ;;
