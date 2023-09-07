@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ansi (1.5.0)
+    builder (3.2.4)
+    minitest (5.20.0)
+    minitest-reporters (1.6.1)
+      ansi
+      builder
+      minitest (>= 5.0)
+      ruby-progressbar
+    ruby-progressbar (1.13.0)
+
+PLATFORMS
+  x86_64-linux
+
+DEPENDENCIES
+  minitest-reporters
+
+BUNDLED WITH
+   2.4.10
