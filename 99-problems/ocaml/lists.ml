@@ -150,3 +150,9 @@ let%expect_test _ =
   ; print @@ rev [ 1; 2; 3 ]
   ; [%expect {| 3, 2, 1 |}]
 ;;
+
+(*
+ * 6 - Find out whether a list is a palindrome.
+ *)
+
+let is_palindrome lst = lst = rev lst
