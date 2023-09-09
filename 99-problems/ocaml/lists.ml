@@ -11,7 +11,7 @@ dune utop
 open Printf
 
 (*
- * 1) Write a function last : 'a list -> 'a option that returns the last element of a list
+ * 1 - Write a function last : 'a list -> 'a option that returns the last element of a list
  *)
 let rec last = function
   | [] -> None
@@ -35,7 +35,7 @@ let%expect_test _ =
 ;;
 
 (*
- * 2) Find the last but one (last and penultimate) elements of a list.
+ * 2 - Find the last but one (last and penultimate) elements of a list.
  *)
 let rec last_two lst : ('a * 'b) option =
   match lst with
@@ -59,7 +59,7 @@ let%expect_test _ =
 ;;
 
 (*
- * 3) Find the N'th element of a list.
+ * 3 - Find the N'th element of a list.
  *)
 
 let nth lst n =
@@ -102,4 +102,26 @@ let%expect_test _ =
   ; [%expect {| Some "c" |}]
   ; print @@ at [ "a" ] 2
   ; [%expect "None"]
+;;
+
+(*
+ * 4 - Find the number of elements of a list.
+ *)
+
+let len lst =
+  let rec loop n = function
+    | [] -> n
+    | _ :: t -> loop (n + 1) t
+  in
+  loop 0 lst
+;;
+
+let%expect_test _ =
+  ()
+  ; print_int @@ len []
+  ; [%expect {| 0 |}]
+  ; print_int @@ len [ 'A' ]
+  ; [%expect {| 1 |}]
+  ; print_int @@ len [ 'A'; 'B' ]
+  ; [%expect {| 2 |}]
 ;;
