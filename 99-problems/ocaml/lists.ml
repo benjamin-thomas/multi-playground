@@ -125,3 +125,28 @@ let%expect_test _ =
   ; print_int @@ len [ 'A'; 'B' ]
   ; [%expect {| 2 |}]
 ;;
+
+(*
+ * 5 - Reverse a list.
+ *)
+
+let rev lst =
+  let rec loop acc = function
+    | [] -> acc
+    | h :: t -> loop (h :: acc) t
+  in
+  loop [] lst
+;;
+
+let%expect_test _ =
+  let print lst =
+    print_string @@ String.concat ", " (List.map string_of_int lst)
+  in
+  ()
+  ; print @@ rev []
+  ; [%expect]
+  ; print @@ rev [ 1 ]
+  ; [%expect {| 1 |}]
+  ; print @@ rev [ 1; 2; 3 ]
+  ; [%expect {| 3, 2, 1 |}]
+;;
