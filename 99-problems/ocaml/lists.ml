@@ -156,3 +156,51 @@ let%expect_test _ =
  *)
 
 let is_palindrome lst = lst = rev lst
+
+(*
+ * 7 - Flatten a nested list structure.
+ *)
+
+type 'a node = One of 'a | Many of 'a node list
+
+(* My solution *)
+let flatten (lst : 'a node list) =
+  let rec loop acc = function
+    | [] -> acc
+    | One h :: t -> loop (h :: acc) t
+    | Many l :: r -> rev (loop acc l) @ rev (loop [] r)
+  in
+
+  loop [] lst |> rev
+;;
+
+(* The site's solution - better! *)
+let flatten' (lst : 'a node list) =
+  let rec loop acc = function
+    | [] -> acc
+    | One x :: t -> loop (x :: acc) t
+    | Many l :: r -> loop (loop acc l) r
+  in
+  List.rev (loop [] lst)
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ String.concat ", " lst in
+  let x =
+    [ One "a"
+    ; Many
+      [ One "b"
+      ; Many
+        [ One "c"
+        ; One "d"
+        ]
+      ; One "e"
+      ; One "f"
+      ]
+    ] in
+  ()
+  ; print @@ flatten x
+  ; [%expect {| a, b, c, d, e, f |}]
+  ; print @@ flatten' x
+  ; [%expect {| a, b, c, d, e, f |}]
+[@@ocamlformat "disable"]
