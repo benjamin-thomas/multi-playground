@@ -204,3 +204,45 @@ let%expect_test _ =
   ; print @@ flatten' x
   ; [%expect {| a, b, c, d, e, f |}]
 [@@ocamlformat "disable"]
+
+(*
+ * 8 - Eliminate consecutive duplicates of list elements.
+ *)
+
+(* My solution *)
+let compress lst =
+  let rec loop acc seen = function
+    | [] -> acc
+    | h :: t ->
+        if h = seen then
+          loop acc seen t
+        else
+          loop (h :: acc) h t
+  in
+
+  match lst with
+  | [] -> []
+  | h :: t -> List.rev (loop [ h ] h t)
+;;
+
+(* The site's solution 🤯️ *)
+let rec compress' = function
+  | a :: (b :: _ as rest) ->
+      if a = b then
+        compress' rest
+      else
+        a :: compress' rest
+  | smaller -> smaller
+;;
+
+let%expect_test _ =
+  let print lst =
+    let items = List.map (sprintf {|"%s"|}) lst in
+    print_string @@ "[" ^ String.concat "; " items ^ "]"
+  in
+  ()
+  ; print @@ compress [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ]
+  ; [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}]
+  ; print @@ compress' [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ]
+  ; [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}]
+[@@ocamlformat "disable"]
