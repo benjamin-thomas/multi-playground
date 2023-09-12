@@ -235,14 +235,91 @@ let rec compress' = function
   | smaller -> smaller
 ;;
 
+(* Chat GPT! *)
+let compress'' lst =
+  let rec loop acc = function
+    | [] -> List.rev acc
+    | a :: (b :: _ as rest) when a = b -> loop acc rest
+    | a :: rest -> loop (a :: acc) rest
+  in
+  loop [] lst
+;;
+
 let%expect_test _ =
   let print lst =
     let items = List.map (sprintf {|"%s"|}) lst in
     print_string @@ "[" ^ String.concat "; " items ^ "]"
   in
+  let input = [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ] in
+  let expect () = [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}] in
   ()
-  ; print @@ compress [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ]
-  ; [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}]
-  ; print @@ compress' [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ]
-  ; [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}]
+  ; print @@ compress input
+  ; expect ()
+  ; print @@ compress' input
+  ; expect ()
+  ; print @@ compress'' input
+  ; expect ()
+[@@ocamlformat "disable"]
+
+(*
+ * 9. Pack consecutive duplicates of list elements into sublists.
+ *)
+
+(* My solution *)
+let pack lst =
+  let rec loop acc = function
+    | a :: (b :: _rest as rest) ->
+        if a = b then
+          loop (a :: acc) rest
+        else
+          (a :: acc) :: loop [] rest
+    | smaller -> [ acc @ smaller ]
+  in
+  loop [] lst
+;;
+
+(* The site's solution *)
+let pack' lst =
+  let rec loop curr acc = function
+    | [] -> [] (* original list is empty *)
+    | [ x ] -> (x :: curr) :: acc
+    | a :: (b :: _ as t) ->
+        if a = b then
+          loop (a :: curr) acc t
+        else
+          loop [] ((a :: curr) :: acc) t
+  in
+  List.rev (loop [] [] lst)
+;;
+
+(* Chat GPT! *)
+let pack'' lst =
+  let rec loop acc curr = function
+    | [] -> List.rev (curr :: acc)
+    | h :: t -> (
+        match curr with
+        | [] -> loop acc [ h ] t
+        | h' :: _ when h = h' -> loop acc (h :: curr) t
+        | _ -> loop (curr :: acc) [ h ] t)
+  in
+  match lst with
+  | [] -> []
+  | h :: t -> loop [] [ h ] t
+;;
+
+let%expect_test _ =
+  let to_lst_fmt items =
+    "[" ^ String.concat "; " items ^ "]"
+  in
+  let deep1 lst = to_lst_fmt @@ List.map (sprintf {|"%s"|}) lst in
+  let deep2 lst = to_lst_fmt @@ List.map deep1 lst in
+  let print lst = print_string @@ deep2 lst in
+  let expect () = [%expect {| [["a"; "a"; "a"; "a"]; ["b"]; ["c"; "c"]; ["a"; "a"]; ["d"; "d"]; ["e"; "e"; "e"; "e"]] |}] in
+  ()
+  ; print @@ pack ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"]
+  ; expect ()
+  ; print @@ pack' ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"]
+  ; expect ()
+  ; print @@ pack'' ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"]
+  ; expect ()
 [@@ocamlformat "disable"]

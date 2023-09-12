@@ -1,7 +1,8 @@
 #!/bin/bash
 
+set -e
+
 while true; do
-    # dune top >.ocamlinit && cat .ocamlinit.extra >>.ocamlinit && rlwrap ocaml
-    dune top >.ocamlinit && cat .ocamlinit.extra >>.ocamlinit && ocaml
+    utop
     sleep 0.1
 done
