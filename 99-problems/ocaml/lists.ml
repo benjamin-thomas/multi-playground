@@ -278,7 +278,7 @@ let pack lst =
   loop [] lst
 ;;
 
-(* The site's solution *)
+(* The site's solution, better. *)
 let pack' lst =
   let rec loop curr acc = function
     | [] -> [] (* original list is empty *)
@@ -321,5 +321,45 @@ let%expect_test _ =
   ; print @@ pack' ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"]
   ; expect ()
   ; print @@ pack'' ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"d";"e";"e";"e";"e"]
+  ; expect ()
+[@@ocamlformat "disable"]
+
+(*
+ * 10 - Run-Length Encoding
+ *
+ * Use the result of problem P09 to implement the so-called run-length encoding data compression method.
+ * Consecutive duplicates of elements are encoded as lists (N E) where N is the number of duplicates of the element E.
+ *)
+
+let encode lst =
+  let rec loop acc ((cnt, h') as curr) = function
+    | [] -> List.rev (curr :: acc)
+    | h :: t ->
+        if h = h' then
+          loop acc (cnt + 1, h') t
+        else
+          loop (curr :: acc) (1, h) t
+  in
+  match lst with
+  | [] -> []
+  | h :: t -> loop [] (1, h) t
+;;
+
+let%expect_test _ =
+  let string_of_items lst =
+    let f (x, y) = sprintf {|(%d, '%c')|} x y in
+    let x = String.concat "; " (List.map f lst) in
+    "[" ^ x ^ "]"
+  in
+  let print lst = print_string @@ string_of_items lst in
+  let expect () = [%expect {|[(4, 'a'); (1, 'b'); (2, 'c'); (2, 'a'); (1, 'd'); (4, 'e')]|}] in
+  ()
+  ; print @@ encode []
+  ; [%expect "[]"]
+  ; print @@ encode ['A']
+  ; [%expect {|[(1, 'A')]|}]
+  ; print @@ encode ['A'; 'A']
+  ; [%expect {|[(2, 'A')]|}]
+  ; print @@ encode ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e']
   ; expect ()
 [@@ocamlformat "disable"]
