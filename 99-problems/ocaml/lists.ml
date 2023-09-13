@@ -345,6 +345,29 @@ let encode lst =
   | h :: t -> loop [] (1, h) t
 ;;
 
+(* Imperative style *)
+let encode' lst =
+  if lst = [] then
+    []
+  else
+    let curr = ref (1, List.hd lst) in
+    let acc = ref [] in
+    for i = 1 to List.length lst - 1 do
+      let cnt, x = !curr in
+      let x' = List.nth lst i in
+      ()
+      ; if x = x' then (
+          ()
+          ; curr := (cnt + 1, x)
+        ) else (
+          ()
+          ; acc := !acc @ [ !curr ]
+          ; curr := (1, x')
+        )
+    done
+    ; !acc @ [ !curr ]
+;;
+
 let%expect_test _ =
   let string_of_items lst =
     let f (x, y) = sprintf {|(%d, '%c')|} x y in
@@ -352,6 +375,7 @@ let%expect_test _ =
     "[" ^ x ^ "]"
   in
   let print lst = print_string @@ string_of_items lst in
+  let input = ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e'] in
   let expect () = [%expect {|[(4, 'a'); (1, 'b'); (2, 'c'); (2, 'a'); (1, 'd'); (4, 'e')]|}] in
   ()
   ; print @@ encode []
@@ -360,6 +384,10 @@ let%expect_test _ =
   ; [%expect {|[(1, 'A')]|}]
   ; print @@ encode ['A'; 'A']
   ; [%expect {|[(2, 'A')]|}]
-  ; print @@ encode ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e']
+  ; print @@ encode input
   ; expect ()
+  ; print @@ encode' []
+  ; [%expect "[]"]
+  ; print @@ encode' ['A']
+  ; [%expect {|[(1, 'A')]|}]
 [@@ocamlformat "disable"]
