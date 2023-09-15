@@ -390,4 +390,63 @@ let%expect_test _ =
   ; [%expect "[]"]
   ; print @@ encode' ['A']
   ; [%expect {|[(1, 'A')]|}]
+  ; print @@ encode' input
+  ; expect ()
+[@@ocamlformat "disable"]
+
+(*
+ * 11 - Modified Run-Length Encoding
+ *
+ * Modify the result of the previous problem in such a way that if an element has no
+ * duplicates it is simply copied into the result list.
+ *
+ * Only elements with duplicates are transferred as (N E) lists.
+ *)
+
+type 'a rle = One of 'a | Many of (int * 'a)
+
+let encode2 lst =
+  let rec loop curr acc = function
+    | [] -> curr :: acc
+    | h :: t -> (
+        match curr with
+        | One h2 ->
+            if h = h2 then
+              loop (Many (2, h)) acc t
+            else
+              loop (One h) (curr :: acc) t
+        | Many (n, h2) ->
+            if h = h2 then
+              loop (Many (n + 1, h)) acc t
+            else
+              loop (One h) (curr :: acc) t)
+  in
+  match lst with
+  | [] -> []
+  | h :: t -> loop (One h) [] t |> List.rev
+;;
+
+let%expect_test _ =
+  let item = function
+    | One a -> sprintf "One '%c'" a
+    | Many (a, b) -> sprintf "Many (%d, '%c')" a b
+  in
+  let items lst = "["^ String.concat "; " (List.map item lst)  ^"]" in
+  let input = ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e'] in
+  let expect () =
+    [%expect {| [Many (4, 'a'); One 'b'; Many (2, 'c'); Many (2, 'a'); One 'd'; Many (4, 'e')] |}]
+  in
+  ()
+  ; print_string @@ items @@ encode2 []
+  ; [%expect {| [] |}]
+  ; print_string @@ items @@ encode2 ['a']
+  ; [%expect {| [One 'a'] |}]
+  ; print_string @@ items @@ encode2 ['a'; 'a']
+  ; [%expect {| [Many (2, 'a')] |}]
+  ; print_string @@ items @@ encode2 ['a'; 'a'; 'a']
+  ; [%expect {| [Many (3, 'a')] |}]
+  ; print_string @@ items @@ encode2 ['a'; 'a'; 'a'; 'b']
+  ; [%expect {| [Many (3, 'a'); One 'b'] |}]
+  ; print_string @@ items @@ encode2 input
+  ; expect ()
 [@@ocamlformat "disable"]
