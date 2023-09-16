@@ -529,3 +529,36 @@ let%expect_test _ =
   ; print @@ decode' input
   ; expect ()
 [@@ocamlformat "disable"]
+
+(*
+ * 13 - Run-Length Encoding of a List (Direct Solution)
+ *
+ * Skip: there seems to be a mistake on the website.
+ * I see no difference with the prior exercises (even looking at the answers).
+ *)
+
+(*
+ * 14 - Duplicate the Elements of a List
+ *)
+
+let duplicate lst =
+  let rec loop acc = function
+    | [] -> acc
+    | h :: t -> loop (h :: h :: acc) t
+  in
+  loop [] lst |> List.rev
+;;
+
+let%expect_test _ =
+  let print lst =
+    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
+    print_string @@ "[" ^ body ^ "]"
+  in
+  ()
+  ; print @@ duplicate []
+  ; [%expect {| [] |}]
+  ; print @@ duplicate [ 'a' ]
+  ; [%expect {| ['a'; 'a'] |}]
+  ; print @@ duplicate [ 'a'; 'b'; 'c'; 'c'; 'd' ]
+  ; [%expect {| ['a'; 'a'; 'b'; 'b'; 'c'; 'c'; 'c'; 'c'; 'd'; 'd'] |}]
+;;
