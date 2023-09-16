@@ -450,3 +450,82 @@ let%expect_test _ =
   ; print_string @@ items @@ encode2 input
   ; expect ()
 [@@ocamlformat "disable"]
+
+(*
+ * 12 - Decode a Run-Length Encoded List
+ *
+ * Given a run-length code list generated as specified in the previous problem, construct its uncompressed version.
+ *)
+
+let decode lst =
+  let rec loop acc = function
+    | [] -> acc
+    | h :: t -> (
+        match h with
+        | One x -> loop (x :: acc) t
+        | Many (a, b) ->
+            let () = assert (a > 0) in
+            if a = 1 then
+              loop (b :: acc) t
+            else
+              loop (b :: acc) (Many (a - 1, b) :: t))
+  in
+  loop [] lst |> List.rev
+;;
+
+let repeat x =
+  let rec many acc x = function
+    | 0 -> acc
+    | n -> many (x :: acc) x (n - 1)
+  in
+  many [] x
+;;
+
+let%expect_test _ =
+  let print lst =
+    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
+    print_string @@ "[" ^ body ^ "]"
+  in
+  ()
+  ; print @@ repeat 'a' 3
+  ; [%expect {| ['a'; 'a'; 'a'] |}]
+;;
+
+(* Adapted from the site's solution *)
+let decode' lst =
+  let rec many acc x = function
+    | 0 -> acc
+    | n -> many (x :: acc) x (n - 1)
+  in
+  let rec loop acc = function
+    | [] -> acc
+    | One x :: t -> loop (x :: acc) t
+    | Many (n, x) :: t -> loop (many acc x n) t
+  in
+
+  loop [] lst |> List.rev
+;;
+
+let%expect_test _ =
+  let print lst =
+    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
+    print_string @@ "[" ^ body ^ "]"
+  in
+  let input = [Many (4, 'a'); One 'b'; Many (2, 'c'); Many (2, 'a'); One 'd'; Many (4, 'e')] in
+  let expect () = [%expect {| ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e'] |}] in
+  ()
+  ; print @@ decode []
+  ; [%expect {| [] |}]
+  ; print @@ decode [ One 'a' ]
+  ; [%expect {| ['a'] |}]
+  ; print @@ decode [ One 'a'; One 'b' ]
+  ; [%expect {| ['a'; 'b'] |}]
+  ; print @@ decode [ Many (2, 'a') ]
+  ; [%expect {| ['a'; 'a'] |}]
+  ; print @@ decode [ Many (2, 'a'); One 'b' ]
+  ; [%expect {| ['a'; 'a'; 'b'] |}]
+  ; print @@ decode input
+  ; expect ()
+  ; print @@ decode' input
+  ; expect ()
+[@@ocamlformat "disable"]
