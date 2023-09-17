@@ -3,6 +3,7 @@
             [problems.core :refer :all]))
 
 (deftest my-last-test
+  (is (= nil (my-last [])))
   (is (= 3 (my-last [1 2 3])))
   (is (= 6 (my-last '(4 5 6))))
 
@@ -12,6 +13,7 @@
   )
 
 (deftest my-last2-test
+  (is (= nil (my-last2 [])))
   (is (= 3 (my-last2 [1 2 3])))
   (is (= 6 (my-last2 '(4 5 6))))
 
@@ -20,9 +22,19 @@
   )
 
 (deftest my-last3-test
+  (is (= nil (my-last3 [])))
   (is (= 3 (my-last3 [1 2 3])))
   (is (= 6 (my-last3 '(4 5 6))))
 
   ; Ok with `recur`
+  (is (= 9998 (my-last3 (range 0 9999))))
+  )
+
+(deftest my-last4-test
+  (is (= nil (my-last4 [])))
+  (is (= 3 (my-last4 [1 2 3])))
+  (is (= 6 (my-last4 '(4 5 6))))
+
+  ; Ok with `reduce`
   (is (= 9998 (my-last3 (range 0 9999))))
   )

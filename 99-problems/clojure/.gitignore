@@ -12,3 +12,6 @@ pom.xml.asc
 .hgignore
 .hg/
 /problems.iml
+
+/.clj-kondo/
+/.lsp/

@@ -16,8 +16,7 @@
 (defn my-last [lst]
   (if (empty? (rest lst))
     (first lst)
-    (my-last (rest lst))
-    ))
+    (my-last (rest lst))))
 
 (defn my-last2 [lst]
   (cond
@@ -30,5 +29,7 @@
     (cond
       (empty? lst) nil
       (empty? rest') (first lst)
-      :else (recur rest')))
-  )
+      :else (recur rest'))))
+
+(defn my-last4 [lst]
+  (reduce (fn [_acc x] x) nil lst))

@@ -19,6 +19,14 @@ let rec last = function
   | _ :: xs -> last xs
 ;;
 
+(*
+  > This solution can also be written in terms of a fold.
+
+  - http://community.schemewiki.org/?ninety-nine-scheme-problems
+  - http://community.schemewiki.org/?S-99-01
+ *)
+let last' lst = List.fold_left (fun _acc n -> Some n) None lst
+
 let%expect_test _ =
   let print int_opt =
     int_opt |> Option.map print_int |> Option.value ~default:()
@@ -27,10 +35,19 @@ let%expect_test _ =
   ; print @@ last []
   ; [%expect ""]
   ; ()
+  ; print @@ last' []
+  ; [%expect ""]
+  ; ()
   ; print @@ last [ 1 ]
   ; [%expect "1"]
   ; ()
+  ; print @@ last' [ 1 ]
+  ; [%expect "1"]
+  ; ()
   ; print @@ last [ 1; 2 ]
+  ; [%expect "2"]
+  ; ()
+  ; print @@ last' [ 1; 2 ]
   ; [%expect "2"]
 ;;
 
