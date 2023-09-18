@@ -22,8 +22,8 @@ Install the testing framework: http://wiki.call-cc.org/eggref/5/srfi-78
 
 Sources:
 
-    - http://community.schemewiki.org/?ninety-nine-scheme-problems
-    - https://www.ic.unicamp.br/~meidanis/courses/mc336/problemas-lisp/L-99_Ninety-Nine_Lisp_Problems.html
+    * http://community.schemewiki.org/?ninety-nine-scheme-problems
+    * https://www.ic.unicamp.br/~meidanis/courses/mc336/problemas-lisp/L-99_Ninety-Nine_Lisp_Problems.html
 
 |#
 
@@ -41,6 +41,11 @@ Sources:
 
 (check (last '(1 2 3)) => 3)
 
+; OMG ;)
+(define (last2 lst)
+  (eval (cons 'and lst)))
+
+(check (last2 '(1 2 3 4)) => 4)
 
 ; ============================================
 ; P02 (*) Find the last but one box of a list.
