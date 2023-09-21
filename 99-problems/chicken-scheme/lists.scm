@@ -17,6 +17,7 @@ Chicken Scheme (compiles to C)
 Install the testing framework: http://wiki.call-cc.org/eggref/5/srfi-78
 
   chicken-install srfi-78, as root (?)
+  See: https://wiki.call-cc.org/man/4/Extensions#changing-repository-location
 
 ---
 
