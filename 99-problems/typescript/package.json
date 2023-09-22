@@ -1,0 +1,11 @@
+{
+  "name": "99-problems",
+  "module": "main.ts",
+  "type": "module",
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
