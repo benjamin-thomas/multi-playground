@@ -579,3 +579,55 @@ let%expect_test _ =
   ; print @@ duplicate [ 'a'; 'b'; 'c'; 'c'; 'd' ]
   ; [%expect {| ['a'; 'a'; 'b'; 'b'; 'c'; 'c'; 'c'; 'c'; 'd'; 'd'] |}]
 ;;
+
+(*
+ * 14 - Replicate the Elements of a List a Given Number of Times
+ *)
+
+(* First attempt *)
+let replicate_orig lst n =
+  let rec aux acc pattern n =
+    if n <= 0 then
+      acc
+    else
+      aux (acc @ pattern) pattern (n - 1)
+  in
+  aux [] lst n
+;;
+
+(* 2nd attempt, after taking a peak at the site's solution --> remove the list append operation *)
+let replicate lst n =
+  let prepend acc lst =
+    let rec aux acc = function
+      | [] -> acc
+      | h :: t -> aux (h :: acc) t
+    in
+    aux acc (List.rev lst)
+  in
+  let rec aux acc pattern n =
+    if n <= 0 then
+      acc
+    else
+      aux (prepend acc pattern) pattern (n - 1)
+  in
+  aux [] lst n
+;;
+
+let%expect_test _ =
+  let print lst =
+    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
+    print_string @@ "[" ^ body ^ "]"
+  in
+  ()
+  ; print @@ replicate [ 'a'; 'b'; 'c' ] 0
+  ; [%expect {| [] |}]
+  ; ()
+  ; print @@ replicate [ 'a'; 'b'; 'c' ] 1
+  ; [%expect {| ['a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ replicate [ 'a'; 'b'; 'c' ] 2
+  ; [%expect {| ['a'; 'b'; 'c'; 'a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ replicate [ 'a'; 'b'; 'c' ] 3
+  ; [%expect {| ['a'; 'b'; 'c'; 'a'; 'b'; 'c'; 'a'; 'b'; 'c'] |}]
+;;
