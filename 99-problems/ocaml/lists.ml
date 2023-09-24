@@ -620,3 +620,34 @@ let%expect_test _ =
 (*
  * 16 - Drop every N'th element from a list.
  *)
+
+let drop lst n =
+  let rec aux acc n' = function
+    | [] -> List.rev acc
+    | h :: t ->
+        if n' = 1 then
+          aux acc n t
+        else
+          aux (h :: acc) (n' - 1) t
+  in
+  aux [] n lst
+;;
+
+let%expect_test _ =
+  let print = Printers.Char_list.print in
+  ()
+  ; print @@ drop [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j' ] 3
+  ; [%expect {| ['a'; 'b'; 'd'; 'e'; 'g'; 'h'; 'j'] |}]
+  ; ()
+  ; print @@ drop [] 3
+  ; [%expect {| [] |}]
+  ; ()
+  ; print @@ drop [ 'a'; 'b'; 'c' ] 0
+  ; [%expect {| ['a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ drop [ 'a'; 'b'; 'c' ] 1
+  ; [%expect {| [] |}]
+  ; ()
+  ; print @@ drop [ 'a'; 'b'; 'c' ] 2
+  ; [%expect {| ['a'; 'c'] |}]
+;;
