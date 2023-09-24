@@ -24,7 +24,19 @@ Install the testing framework: http://wiki.call-cc.org/eggref/5/srfi-78
 Sources:
 
     * http://community.schemewiki.org/?ninety-nine-scheme-problems
-    * https://www.ic.unicamp.br/~meidanis/courses/mc336/problemas-lisp/L-99_Ninety-Nine_Lisp_Problems.html
+* https://www.ic.unicamp.br/~meidanis/courses/mc336/problemas-lisp/L-99_Ninety-Nine_Lisp_Problems.html
+
+---
+
+NOTE: to fix the error "Error: unbound variable: geiser#geiser-eval" (when evaluating to the REPL from emacs), I had to install those packages:
+
+- chicken-install -s apropos chicken-doc
+- chicken-install -s srfi-18
+
+See:
+
+  - https://gitlab.com/emacs-geiser/chicken/-/issues/23#note_381989978
+  - https://wiki.call-cc.org/emacs
 
 |#
 
@@ -73,4 +85,15 @@ Sources:
 (check (penultimate2 '(1 2 3 4 5)) => 4)
 
 
-;(check-report)
+(display (string-append "Hello, " "world!"))
+
+
+(import srfi-19)
+
+(define current-time (current-time))
+;(define current-time-string (time->string current-time))
+
+;(display current-time-string)
+;(newline)
+
+					;(check-report)
