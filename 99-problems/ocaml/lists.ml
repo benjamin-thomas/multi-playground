@@ -263,10 +263,7 @@ let compress'' lst =
 ;;
 
 let%expect_test _ =
-  let print lst =
-    let items = List.map (sprintf {|"%s"|}) lst in
-    print_string @@ "[" ^ String.concat "; " items ^ "]"
-  in
+  let print = Printers.String_list.print in
   let input = [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ] in
   let expect () = [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}] in
   ()
@@ -499,10 +496,7 @@ let repeat x =
 ;;
 
 let%expect_test _ =
-  let print lst =
-    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
-    print_string @@ "[" ^ body ^ "]"
-  in
+  let print = Printers.Char_list.print in
   ()
   ; print @@ repeat 'a' 3
   ; [%expect {| ['a'; 'a'; 'a'] |}]
@@ -524,10 +518,7 @@ let decode' lst =
 ;;
 
 let%expect_test _ =
-  let print lst =
-    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
-    print_string @@ "[" ^ body ^ "]"
-  in
+  let print = Printers.Char_list.print in
   let input = [Many (4, 'a'); One 'b'; Many (2, 'c'); Many (2, 'a'); One 'd'; Many (4, 'e')] in
   let expect () = [%expect {| ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e'] |}] in
   ()
@@ -567,10 +558,7 @@ let duplicate lst =
 ;;
 
 let%expect_test _ =
-  let print lst =
-    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
-    print_string @@ "[" ^ body ^ "]"
-  in
+  let print = Printers.Char_list.print in
   ()
   ; print @@ duplicate []
   ; [%expect {| [] |}]
@@ -581,7 +569,7 @@ let%expect_test _ =
 ;;
 
 (*
- * 14 - Replicate the Elements of a List a Given Number of Times
+ * 15 - Replicate the Elements of a List a Given Number of Times
  *)
 
 (* First attempt *)
@@ -614,10 +602,7 @@ let replicate lst n =
 ;;
 
 let%expect_test _ =
-  let print lst =
-    let body = String.concat "; " (List.map (sprintf "'%c'") lst) in
-    print_string @@ "[" ^ body ^ "]"
-  in
+  let print = Printers.Char_list.print in
   ()
   ; print @@ replicate [ 'a'; 'b'; 'c' ] 0
   ; [%expect {| [] |}]
@@ -631,3 +616,7 @@ let%expect_test _ =
   ; print @@ replicate [ 'a'; 'b'; 'c' ] 3
   ; [%expect {| ['a'; 'b'; 'c'; 'a'; 'b'; 'c'; 'a'; 'b'; 'c'] |}]
 ;;
+
+(*
+ * 16 - Drop every N'th element from a list.
+ *)
