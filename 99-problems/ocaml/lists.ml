@@ -263,7 +263,7 @@ let compress'' lst =
 ;;
 
 let%expect_test _ =
-  let print lst = print_string @@ Show.String_list.show lst in
+  let print lst = print_string @@ Show.string_list lst in
   let input = [ "a"; "a"; "a"; "a"; "b"; "c"; "c"; "a"; "a"; "d"; "e"; "e"; "e"; "e" ] in
   let expect () = [%expect{| ["a"; "b"; "c"; "a"; "d"; "e"] |}] in
   ()
@@ -496,7 +496,7 @@ let repeat x =
 ;;
 
 let%expect_test _ =
-  let print lst = print_string @@ Show.Char_list.show lst in
+  let print lst = print_string @@ Show.char_list lst in
   ()
   ; print @@ repeat 'a' 3
   ; [%expect {| ['a'; 'a'; 'a'] |}]
@@ -518,7 +518,7 @@ let decode' lst =
 ;;
 
 let%expect_test _ =
-  let print lst = print_string @@ Show.Char_list.show lst in
+let print lst = print_string @@ Show.char_list lst in
   let input = [Many (4, 'a'); One 'b'; Many (2, 'c'); Many (2, 'a'); One 'd'; Many (4, 'e')] in
   let expect () = [%expect {| ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e'] |}] in
   ()
@@ -558,7 +558,7 @@ let duplicate lst =
 ;;
 
 let%expect_test _ =
-  let print lst = print_string @@ Show.Char_list.show lst in
+  let print lst = print_string @@ Show.char_list lst in
   ()
   ; print @@ duplicate []
   ; [%expect {| [] |}]
@@ -602,7 +602,7 @@ let replicate lst n =
 ;;
 
 let%expect_test _ =
-  let print lst = print_string @@ Show.Char_list.show lst in
+  let print lst = print_string @@ Show.char_list lst in
   ()
   ; print @@ replicate [ 'a'; 'b'; 'c' ] 0
   ; [%expect {| [] |}]
@@ -634,7 +634,7 @@ let drop lst n =
 ;;
 
 let%expect_test _ =
-  let print lst = print_string @@ Show.Char_list.show lst in
+  let print lst = print_string @@ Show.char_list lst in
   ()
   ; print @@ drop [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j' ] 3
   ; [%expect {| ['a'; 'b'; 'd'; 'e'; 'g'; 'h'; 'j'] |}]
@@ -673,10 +673,7 @@ let split lst n =
 ;;
 
 let%expect_test _ =
-  let print (a, b) =
-    let open Show in
-    print_string @@ Tuple.show (Char_list.show a, Char_list.show b)
-  in
+  let print (a, b) = print_string @@ Show.(tup2 (char_list a, char_list b)) in
   ()
   ; print @@ split [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j' ] 3
   ; [%expect {| (['a'; 'b'; 'c'], ['d'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j']) |}]
