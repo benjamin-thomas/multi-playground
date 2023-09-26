@@ -651,3 +651,36 @@ let%expect_test _ =
   ; print @@ drop [ 'a'; 'b'; 'c' ] 2
   ; [%expect {| ['a'; 'c'] |}]
 ;;
+
+(*
+ * 17 - Split a list into two parts; the length of the first part is given.
+ *
+ * If the length of the first part is longer than the entire list, then the
+ * first part is the list and the second part is empty.
+ *)
+
+let split lst n =
+  let rec aux (a, b) rest n =
+    match rest with
+    | [] -> (List.rev a, b)
+    | h :: t ->
+        if n > 0 then
+          aux (h :: a, []) t (n - 1)
+        else
+          (List.rev a, h :: t)
+  in
+  aux ([], []) lst n
+;;
+
+let%expect_test _ =
+  let print (a, b) =
+    let open Show in
+    print_string @@ Tuple.show (Char_list.show a, Char_list.show b)
+  in
+  ()
+  ; print @@ split [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j' ] 3
+  ; [%expect {| (['a'; 'b'; 'c'], ['d'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j']) |}]
+  ; ()
+  ; print @@ split [ 'a'; 'b'; 'c'; 'd' ] 5
+  ; [%expect {| (['a'; 'b'; 'c'; 'd'], []) |}]
+;;
