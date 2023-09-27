@@ -681,3 +681,52 @@ let%expect_test _ =
   ; print @@ split [ 'a'; 'b'; 'c'; 'd' ] 5
   ; [%expect {| (['a'; 'b'; 'c'; 'd'], []) |}]
 ;;
+
+(*
+ * 18 - Extract a Slice From a List
+ *
+ * Given two indices, i and k, the slice is the list containing the elements between
+ * the i'th and k'th element of the original list (both limits included).
+ * Start counting the elements with 0 (this is the way the List module numbers elements).
+ *)
+
+let slice lst i k =
+  let rec aux acc i k = function
+    | [] -> List.rev acc
+    | h :: t ->
+        let acc =
+          if i <= 0 && k >= 0 then
+            h :: acc
+          else
+            acc
+        in
+        aux acc (i - 1) (k - 1) t
+  in
+
+  aux [] i k lst
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list lst in
+  ()
+  ; print @@ slice [ 'a'; 'b'; 'c' ] 0 0
+  ; [%expect "['a']"]
+  ; ()
+  ; print @@ slice [ 'a'; 'b'; 'c' ] 0 1
+  ; [%expect {| ['a'; 'b'] |}]
+  ; ()
+  ; print @@ slice [ 'a'; 'b'; 'c' ] 0 2
+  ; [%expect {| ['a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ slice [ 'a'; 'b'; 'c' ] 0 99
+  ; [%expect {| ['a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ slice [ 'a'; 'b'; 'c' ] 99 0
+  ; [%expect "[]"]
+  ; ()
+  ; print @@ slice [ 'a'; 'b'; 'c' ] 1 99
+  ; [%expect "['b'; 'c']"]
+  ; ()
+  ; print @@ slice [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j' ] 2 6
+  ; [%expect {| ['c'; 'd'; 'e'; 'f'; 'g'] |}]
+;;
