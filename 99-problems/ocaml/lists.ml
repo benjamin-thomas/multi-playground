@@ -888,3 +888,48 @@ let%expect_test _ =
   ; print @@ remove_at 1 [ 'a'; 'b'; 'c'; 'd' ]
   ; [%expect {| ['a'; 'c'; 'd'] |}]
 ;;
+
+(*
+ * 21 - Insert an Element at a Given Position Into a List
+ *
+ * If the position is larger or equal to the length of the list, insert the element at the end.
+ * (The behavior is unspecified if the position is negative.)
+ *)
+
+let insert_at x idx lst =
+  let rec aux acc curr inserted = function
+    | [] ->
+        let new_acc =
+          if inserted then
+            acc
+          else
+            x :: acc
+        in
+        List.rev new_acc
+    | h :: t ->
+        let new_acc, inserted =
+          if curr = idx then
+            (h :: x :: acc, true)
+          else
+            (h :: acc, inserted)
+        in
+        aux new_acc (curr + 1) inserted t
+  in
+  aux [] 0 false lst
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.int_list lst in
+  ()
+  ; print @@ insert_at 0 0 [ 1; 2; 3; 4; 5 ]
+  ; [%expect {| [0; 1; 2; 3; 4; 5] |}]
+  ; ()
+  ; print @@ insert_at 0 1 [ 1; 2; 3; 4; 5 ]
+  ; [%expect {| [1; 0; 2; 3; 4; 5] |}]
+  ; ()
+  ; print @@ insert_at 0 2 [ 1; 2; 3; 4; 5 ]
+  ; [%expect {| [1; 2; 0; 3; 4; 5] |}]
+  ; ()
+  ; print @@ insert_at 0 99 [ 1; 2; 3; 4; 5 ]
+  ; [%expect {| [1; 2; 3; 4; 5; 0] |}]
+;;

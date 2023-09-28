@@ -9,5 +9,12 @@ let char_list lst =
 
 let string_list lst =
   let items = List.map (sprintf {|"%s"|}) lst in
-  "[" ^ String.concat "; " items ^ "]"
+  let body = String.concat "; " items in
+  "[" ^ body ^ "]"
+;;
+
+let int_list lst =
+  let items = List.map string_of_int lst in
+  let body = String.concat "; " items in
+  "[" ^ body ^ "]"
 ;;
