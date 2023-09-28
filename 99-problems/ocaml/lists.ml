@@ -784,3 +784,81 @@ let%expect_test _ =
   ; print @@ slice [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h'; 'i'; 'j' ] 2 6
   ; [%expect {| ['c'; 'd'; 'e'; 'f'; 'g'] |}]
 ;;
+
+(*
+ * Rotate a list N places to the left.
+ *)
+
+let rotate1 lst n =
+  let drop n lst =
+    let rec aux n = function
+      | [] -> []
+      | _ :: t as rest ->
+          if n > 0 then
+            aux (n - 1) t
+          else
+            rest
+    in
+    aux n lst
+  in
+
+  let take n lst =
+    let rec aux acc n = function
+      | [] -> List.rev acc
+      | h :: t ->
+          if n > 0 then
+            aux (h :: acc) (n - 1) t
+          else
+            List.rev acc
+    in
+    aux [] n lst
+  in
+  let b = take n lst in
+  let a = drop n lst in
+  a @ b
+;;
+
+let rotate2 lst n =
+  let rec aux acc n = function
+    | [] -> []
+    | h :: t as rest ->
+        if n > 0 then
+          aux (h :: acc) (n - 1) t
+        else
+          rest @ List.rev acc
+  in
+  aux [] n lst
+;;
+
+let rotate3 lst n =
+  let combine a b_rev =
+    let rec accum acc = function
+      | [] -> acc
+      | h :: t -> accum (h :: acc) t
+    in
+    let tmp = accum [] b_rev in
+    accum tmp (List.rev a)
+  in
+  let rec aux acc n = function
+    | [] -> []
+    | h :: t as rest ->
+        if n > 0 then
+          aux (h :: acc) (n - 1) t
+        else
+          combine rest acc
+  in
+  aux [] n lst
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list lst in
+  ()
+  ; print @@ rotate1 [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
+  ; [%expect {| ['d'; 'e'; 'f'; 'g'; 'h'; 'a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ rotate2 [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
+  ; [%expect {| ['d'; 'e'; 'f'; 'g'; 'h'; 'a'; 'b'; 'c'] |}]
+  ; ()
+  ; print @@ rotate3 [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
+  ; [%expect {| ['d'; 'e'; 'f'; 'g'; 'h'; 'a'; 'b'; 'c'] |}]
+;;
