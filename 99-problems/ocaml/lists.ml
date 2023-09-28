@@ -786,7 +786,7 @@ let%expect_test _ =
 ;;
 
 (*
- * Rotate a list N places to the left.
+ * 19 - Rotate a list N places to the left.
  *)
 
 let rotate1 lst n =
@@ -861,4 +861,30 @@ let%expect_test _ =
   ; ()
   ; print @@ rotate3 [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
   ; [%expect {| ['d'; 'e'; 'f'; 'g'; 'h'; 'a'; 'b'; 'c'] |}]
+;;
+
+(*
+ * 20 - Remove the K'th element from a list.
+ *)
+
+let remove_at n lst =
+  let rec aux acc curr = function
+    | [] -> List.rev acc
+    | h :: t ->
+        let new_acc =
+          if curr = n then
+            acc
+          else
+            h :: acc
+        in
+        aux new_acc (curr + 1) t
+  in
+  aux [] 0 lst
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list lst in
+  ()
+  ; print @@ remove_at 1 [ 'a'; 'b'; 'c'; 'd' ]
+  ; [%expect {| ['a'; 'c'; 'd'] |}]
 ;;
