@@ -933,3 +933,35 @@ let%expect_test _ =
   ; print @@ insert_at 0 99 [ 1; 2; 3; 4; 5 ]
   ; [%expect {| [1; 2; 3; 4; 5; 0] |}]
 ;;
+
+(*
+ * 22 - Create a List Containing All Integers Within a Given Range
+ *
+ * If first argument is greater than second, produce a list in decreasing order.
+ *)
+
+let range beg fin =
+  let rec aux acc curr fin =
+    if curr > fin then
+      acc
+    else
+      aux (curr :: acc) (curr + 1) fin
+  in
+  if beg < fin then
+    aux [] beg fin |> List.rev
+  else
+    aux [] fin beg
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.int_list lst in
+  ()
+  ; print @@ range 4 9
+  ; [%expect {| [4; 5; 6; 7; 8; 9] |}]
+  ; ()
+  ; print @@ range 9 4
+  ; [%expect {| [9; 8; 7; 6; 5; 4] |}]
+  ; ()
+  ; print @@ range 5 5
+  ; [%expect {| [5] |}]
+;;
