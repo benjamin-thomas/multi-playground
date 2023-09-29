@@ -940,17 +940,17 @@ let%expect_test _ =
  * If first argument is greater than second, produce a list in decreasing order.
  *)
 
-let range beg fin =
-  let rec aux acc curr fin =
-    if curr > fin then
+let range lo hi =
+  let rec aux acc curr hi =
+    if curr > hi then
       acc
     else
-      aux (curr :: acc) (curr + 1) fin
+      aux (curr :: acc) (curr + 1) hi
   in
-  if beg < fin then
-    aux [] beg fin |> List.rev
+  if lo < hi then
+    aux [] lo hi |> List.rev
   else
-    aux [] fin beg
+    aux [] hi lo
 ;;
 
 let%expect_test _ =
