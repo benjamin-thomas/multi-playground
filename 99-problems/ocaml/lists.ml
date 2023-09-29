@@ -965,3 +965,31 @@ let%expect_test _ =
   ; print @@ range 5 5
   ; [%expect {| [5] |}]
 ;;
+
+(*
+ * 23 - Extract a Given Number of Randomly Selected Elements From a List
+ *
+ * The selected items shall be returned in a list.
+ * We use the Random module but do not initialize it with Random.self_init for reproducibility.
+ *)
+
+let rand_select lst n =
+  let seed = 0 in
+  let () = Random.init seed in
+  let rec aux acc n =
+    if n <= 0 then
+      acc
+    else
+      let idx = Random.int (List.length lst) in
+      let item = List.nth lst idx in
+      aux (item :: acc) (n - 1)
+  in
+  aux [] n
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list lst in
+  ()
+  ; print @@ rand_select [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
+  ; [%expect {| ['h'; 'a'; 'g'] |}]
+;;
