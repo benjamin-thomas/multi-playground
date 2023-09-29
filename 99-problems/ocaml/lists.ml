@@ -974,14 +974,14 @@ let%expect_test _ =
  *)
 
 let rand_select lst n =
-  let seed = 0 in
-  let () = Random.init seed in
+  let len = List.length lst in
+  (* NOTE: it seems tests run with a non-random seed *)
+  let rand_idx () = Random.int len in
   let rec aux acc n =
     if n <= 0 then
       acc
     else
-      let idx = Random.int (List.length lst) in
-      let item = List.nth lst idx in
+      let item = List.nth lst (rand_idx ()) in
       aux (item :: acc) (n - 1)
   in
   aux [] n
@@ -991,5 +991,5 @@ let%expect_test _ =
   let print lst = print_string @@ Show.char_list lst in
   ()
   ; print @@ rand_select [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
-  ; [%expect {| ['h'; 'a'; 'g'] |}]
+  ; [%expect {| ['c'; 'g'; 'd'] |}]
 ;;
