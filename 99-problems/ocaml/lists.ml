@@ -993,3 +993,25 @@ let%expect_test _ =
   ; print @@ rand_select [ 'a'; 'b'; 'c'; 'd'; 'e'; 'f'; 'g'; 'h' ] 3
   ; [%expect {| ['c'; 'g'; 'd'] |}]
 ;;
+
+(*
+ * 24 - Draw N different random numbers from the set 1..M.
+ *)
+
+let lotto_select n m =
+  let get_rand_num () = Random.int m in
+  let rec aux acc n =
+    if n <= 0 then
+      acc
+    else
+      aux (get_rand_num () :: acc) (n - 1)
+  in
+  aux [] n
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.int_list lst in
+  ()
+  ; print @@ lotto_select 6 49
+  ; [%expect {| [17; 12; 3; 6; 21; 11] |}]
+;;
