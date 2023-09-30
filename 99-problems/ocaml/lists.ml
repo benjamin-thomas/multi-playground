@@ -1015,3 +1015,43 @@ let%expect_test _ =
   ; print @@ lotto_select 6 49
   ; [%expect {| [17; 12; 3; 6; 21; 11] |}]
 ;;
+
+(*
+ * 25 - Generate a random permutation of the elements of a list.
+ *
+ * In other words shuffling...
+ *)
+
+(* Maybe not the best performance-wise, but readable *)
+let rec permutation lst =
+  match lst with
+  | [] -> []
+  | [ x ] -> [ x ]
+  | rest ->
+      let len = List.length rest / 2 in
+      let a, b = split rest len in
+      if Random.bool () then
+        permutation a @ permutation b
+      else
+        permutation b @ permutation a
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.int_list lst in
+  ()
+  ; print @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; [%expect {| [6; 5; 4; 2; 3; 1] |}]
+  ; ()
+  ; print @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; [%expect {| [1; 3; 2; 5; 6; 4] |}]
+  ; ()
+  ; print @@ permutation [ 1; 2; 3 ]
+  ; [%expect {| [1; 2; 3] |}]
+  ; ()
+  ; print @@ permutation [ 1; 2; 3 ]
+  ; [%expect {| [1; 3; 2] |}]
+  ; ()
+  ; permutation [ 1; 2; 3 ] |> ignore
+  ; print @@ permutation [ 1; 2; 3 ]
+  ; [%expect {| [2; 3; 1] |}]
+;;
