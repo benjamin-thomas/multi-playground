@@ -1022,36 +1022,83 @@ let%expect_test _ =
  * In other words shuffling...
  *)
 
-(* Maybe not the best performance-wise, but readable *)
+(* Maybe not the best performance-wise, but readable.
+ * Mmm... but actually the randomness is not good enough, see v2.
+ *)
 let rec permutation lst =
   match lst with
   | [] -> []
   | [ x ] -> [ x ]
   | rest ->
-      let len = List.length rest / 2 in
-      let a, b = split rest len in
+      let half = List.length rest / 2 in
+      let a, b = split rest half in
       if Random.bool () then
         permutation a @ permutation b
       else
         permutation b @ permutation a
 ;;
 
+(*
+ * Even less efficient, but randomness should be better.
+ *)
+let permutation2 lst =
+  let rec aux acc = function
+    | [] -> acc
+    | rest ->
+        let rand_idx = Random.int (List.length rest) in
+        let h = List.nth rest rand_idx in
+        let t = List.filteri (fun i _ -> i <> rand_idx) rest in
+        aux (h :: acc) t
+  in
+  aux [] lst
+;;
+
 let%expect_test _ =
-  let print lst = print_string @@ Show.int_list lst in
+  let println lst = print_endline @@ Show.int_list lst in
   ()
-  ; print @@ permutation [ 1; 2; 3; 4; 5; 6 ]
-  ; [%expect {| [6; 5; 4; 2; 3; 1] |}]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation [ 1; 2; 3; 4; 5; 6 ]
+  ; [%expect
+      {|
+    [6; 5; 4; 2; 3; 1]
+    [1; 3; 2; 5; 6; 4]
+    [2; 3; 1; 4; 5; 6]
+    [4; 5; 6; 2; 3; 1]
+    [4; 5; 6; 1; 3; 2]
+    [1; 3; 2; 4; 6; 5]
+    [4; 6; 5; 1; 2; 3]
+    [1; 3; 2; 4; 5; 6]
+    [1; 3; 2; 5; 6; 4]
+    [6; 5; 4; 2; 3; 1] |}]
   ; ()
-  ; print @@ permutation [ 1; 2; 3; 4; 5; 6 ]
-  ; [%expect {| [1; 3; 2; 5; 6; 4] |}]
-  ; ()
-  ; print @@ permutation [ 1; 2; 3 ]
-  ; [%expect {| [1; 2; 3] |}]
-  ; ()
-  ; print @@ permutation [ 1; 2; 3 ]
-  ; [%expect {| [1; 3; 2] |}]
-  ; ()
-  ; permutation [ 1; 2; 3 ] |> ignore
-  ; print @@ permutation [ 1; 2; 3 ]
-  ; [%expect {| [2; 3; 1] |}]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; println @@ permutation2 [ 1; 2; 3; 4; 5; 6 ]
+  ; [%expect
+      {|
+    [4; 3; 6; 5; 1; 2]
+    [3; 6; 1; 2; 4; 5]
+    [1; 5; 6; 2; 3; 4]
+    [3; 1; 2; 6; 4; 5]
+    [3; 6; 5; 2; 4; 1]
+    [2; 4; 1; 5; 6; 3]
+    [4; 2; 3; 1; 6; 5]
+    [3; 2; 4; 1; 6; 5]
+    [6; 5; 4; 3; 2; 1]
+    [2; 1; 3; 5; 6; 4] |}]
 ;;
