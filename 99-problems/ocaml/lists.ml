@@ -1102,3 +1102,83 @@ let%expect_test _ =
     [6; 5; 4; 3; 2; 1]
     [2; 1; 3; 5; 6; 4] |}]
 ;;
+
+(*
+ * 26 - Generate the combinations of K distinct objects chosen from the N elements of a list.
+ *
+ * In how many ways can a committee of 3 be chosen from a group of 12 people?
+ * We all know that there are C(12,3) = 220 possibilities (C(N,K) denotes the well-known binomial coefficients).
+ * For pure mathematicians, this result may be great.
+ * But we want to really generate all the possibilities in a list.
+ *
+ * C(12,3) means the number of combinations of n elements out of a group of 12, aka "n choose k".
+ * It's calculated using the binomial coefficient formula:
+ *   C(n, k) = n! / (k!(n - k)!)
+ *
+ * See: https://www.omnicalculator.com/math/binomial-coefficient?c=EUR&v=hide:1,n:12,k:3
+ * See also: https://www.dcode.fr/combinations
+ *)
+
+(*
+  That one was tough. I had to peak around to find a solution I was happy with.
+
+  There's something about list comprehension (in Haskell) that simplifies the problem.
+  Although that solution is too rigid to handle the dynamic param `n` (n=2 -> (i,j), n=3 -> (i,j,k), etc.)
+
+  =============================================================================
+
+  utop # extract 2 (range 1 4);;
+  - : int list list = [[1; 2]; [1; 3]; [1; 4]; [2; 3]; [2; 4]; [3; 4]]
+
+  utop # extract 3 (range 1 4);;
+  - : int list list = [[1; 2; 3]; [1; 2; 4]; [1; 3; 4]; [2; 3; 4]]
+
+  =============================================================================
+
+  ghci> [ (i,j) | i <- [1..4], j <- [i..4], i /= j ]
+  [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
+
+  ghci> [ (i,j,k) | i <- [1..4], j <- [i..4], k <- [j..4], i /= j && j /= k ]
+  [(1,2,3),(1,2,4),(1,3,4),(2,3,4)]
+
+  =============================================================================
+ *)
+let extract n lst =
+  let () = if n <= 0 then raise @@ Invalid_argument "n must be positive" in
+  (* outer = [inner, inner, inner, ...] *)
+  let rec aux n lst (inner : 'a list) (outer : 'a list list) : 'list list =
+    if n = 0 then
+      List.rev inner :: outer
+    else
+      match lst with
+      | [] -> outer
+      | x :: xs ->
+          let new_outer = aux (n - 1) xs (x :: inner) outer in
+          aux n xs inner new_outer
+  in
+  aux n lst [] [] |> List.rev
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list_list lst in
+  ()
+  ; print @@ extract 1 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [['A']; ['B']; ['C']; ['D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 2 = 6 combinations) – 4!/2!(4-2)! *)
+  ; print @@ extract 2 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect
+      {| [['A'; 'B']; ['A'; 'C']; ['A'; 'D']; ['B'; 'C']; ['B'; 'D']; ['C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 3 = 4 combinations) – 4!/3!(4-3)! *)
+  ; print @@ extract 3 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect
+      {| [['A'; 'B'; 'C']; ['A'; 'B'; 'D']; ['A'; 'C'; 'D']; ['B'; 'C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 4 = 1 combination) – 4!/4!(4-4)! *)
+  ; print @@ extract 4 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [['A'; 'B'; 'C'; 'D']] |}]
+;;

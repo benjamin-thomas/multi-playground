@@ -7,6 +7,11 @@ let char_list lst =
   "[" ^ body ^ "]"
 ;;
 
+let char_list_list lst =
+  let body = String.concat "; " (List.map char_list lst) in
+  "[" ^ body ^ "]"
+;;
+
 let string_list lst =
   let items = List.map (sprintf {|"%s"|}) lst in
   let body = String.concat "; " items in
