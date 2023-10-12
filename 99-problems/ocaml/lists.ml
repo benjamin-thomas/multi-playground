@@ -1181,4 +1181,167 @@ let%expect_test _ =
   ; () (* (4 choose 4 = 1 combination) – 4!/4!(4-4)! *)
   ; print @@ extract 4 [ 'A'; 'B'; 'C'; 'D' ]
   ; [%expect {| [['A'; 'B'; 'C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 4 = 1 combination) – 4!/4!(4-4)! *)
+  ; print @@ extract 5 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [] |}]
+;;
+
+let extract2 n lst =
+  let rec aux acc rest n =
+    if n = 0 then
+      [ List.rev acc ]
+    else
+      match rest with
+      | [] -> []
+      | x :: xs -> aux (x :: acc) xs (n - 1) @ aux acc xs n
+  in
+  aux [] lst n
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list_list lst in
+  ()
+  ; print @@ extract2 1 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [['A']; ['B']; ['C']; ['D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 2 = 6 combinations) – 4!/2!(4-2)! *)
+  ; print @@ extract2 2 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect
+      {| [['A'; 'B']; ['A'; 'C']; ['A'; 'D']; ['B'; 'C']; ['B'; 'D']; ['C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 3 = 4 combinations) – 4!/3!(4-3)! *)
+  ; print @@ extract2 3 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect
+      {| [['A'; 'B'; 'C']; ['A'; 'B'; 'D']; ['A'; 'C'; 'D']; ['B'; 'C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 4 = 1 combination) – 4!/4!(4-4)! *)
+  ; print @@ extract2 4 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [['A'; 'B'; 'C'; 'D']] |}]
+;;
+
+(* let rec comb acc rest n =
+     if n = 0 then
+       [ acc ]
+     else
+       match rest with
+       | [] -> []
+       | hd :: tl -> comb (acc ^ hd) tl (n - 1) @ comb acc tl n
+   ;; *)
+(*
+let rec comb2 acc rest n =
+  if n = 0 then
+    [ List.rev acc ]
+  else
+    match rest with
+    | [] -> []
+    | x :: xs -> comb2 (x :: acc) xs (n - 1) @ comb2 acc xs n
+;;
+
+let comb3 acc rest n =
+  let rec comb3_helper acc' rest' n' =
+    match n' with
+    | 0 -> [ List.rev acc' ]
+    | _ -> (
+        match rest' with
+        | [] -> []
+        | hd :: tl ->
+            comb3_helper (hd :: acc') tl (n' - 1) @ comb3_helper acc' tl n')
+  in
+  comb3_helper acc rest n
+;; *)
+
+[@@@warning "-27-21"]
+(*
+let rec extract3_sub lst =
+  if List.length lst = 3 then
+    [ lst ]
+  else
+    match lst with
+    | [] -> []
+    | h :: t -> [ [ 0; 0; 0 ]; [ 1; 1; 1 ] ] @ extract3_sub t
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.int_list_list lst in
+  ()
+  ; print @@ extract3_sub [ 3; 4; 5 ]
+  ; [%expect {|[[3; 4; 5]]|}]
+  ; ()
+  ; print @@ extract3_sub [ 2; 3; 4; 5 ]
+  ; [%expect {|[]|}]
+;; *)
+
+(*
+
+Given a set of n things, there are 2n combinations.
+Produce the combinations for the list [a, b, c]
+
+1. []
+2. [a]
+3. [b]
+4. [c]
+5. [a,b]
+6. [a,c]
+7. [b,c]
+8. [a,b,c]
+
+*)
+
+type prepend_args = { elem : char; coll : char list list }
+
+let prepend { elem; coll } : char list list = List.map (List.cons elem) coll
+
+type append_args = { left : char list list; right : char list list }
+
+let append { left; right } = left @ right
+
+let rec sub_sets (lst : char list) =
+  match lst with
+  | [] -> [ [] ]
+  | h :: t ->
+      let left = sub_sets t in
+      let right = List.map (List.cons h) left in
+      left @ right
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list_list lst in
+  ()
+  ; print @@ sub_sets [ 'a'; 'b'; 'c' ]
+  ; [%expect
+      {| [[]; ['c']; ['b']; ['b'; 'c']; ['a']; ['a'; 'c']; ['a'; 'b']; ['a'; 'b'; 'c']] |}]
+;;
+
+(* Much easier to understand but less performant. I'll have to revisit this. *)
+let extract3 n lst =
+  sub_sets lst |> List.filter (fun ss -> List.length ss = n) |> List.rev
+;;
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list_list lst in
+  ()
+  ; print @@ extract3 1 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [['A']; ['B']; ['C']; ['D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 2 = 6 combinations) – 4!/2!(4-2)! *)
+  ; print @@ extract3 2 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect
+      {| [['A'; 'B']; ['A'; 'C']; ['A'; 'D']; ['B'; 'C']; ['B'; 'D']; ['C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 3 = 4 combinations) – 4!/3!(4-3)! *)
+  ; print @@ extract3 3 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect
+      {| [['A'; 'B'; 'C']; ['A'; 'B'; 'D']; ['A'; 'C'; 'D']; ['B'; 'C'; 'D']] |}]
+  ; ()
+  ; ()
+  ; () (* (4 choose 4 = 1 combination) – 4!/4!(4-4)! *)
+  ; print @@ extract3 4 [ 'A'; 'B'; 'C'; 'D' ]
+  ; [%expect {| [['A'; 'B'; 'C'; 'D']] |}]
 ;;

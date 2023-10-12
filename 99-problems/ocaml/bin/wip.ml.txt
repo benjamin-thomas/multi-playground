@@ -1,0 +1,22 @@
+type prepend_args = { elem : char; coll : char list list }
+
+let prepend { elem; coll } : char list list = List.map (List.cons elem) coll
+
+type append_args = { left : char list list; right : char list list }
+
+let append { left; right } = left @ right
+
+let rec sub_sets (lst : char list) =
+  match lst with
+  | [] -> [ [] ]
+  | h :: t ->
+      let left = sub_sets t in
+      let right = prepend { elem = h; coll = left } in
+      append { left; right }
+;;
+
+#trace sub_sets
+#trace prepend
+#trace append;;
+
+sub_sets [ 'A'; 'B'; 'C' ]

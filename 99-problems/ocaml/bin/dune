@@ -1,0 +1,5 @@
+(executables
+ (names wip2 wip3)
+ (libraries ppx_minidebug.runtime)
+ (preprocess
+  (pps ppx_minidebug ppx_deriving.show)))

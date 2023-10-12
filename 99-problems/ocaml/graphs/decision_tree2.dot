@@ -1,0 +1,44 @@
+digraph combinations {
+    a1 -> {b1 b2 b3 deadend_D deadend_E0};
+    b1 -> {c1 c2 c3 deadend_E1};
+    b2 -> {c4 c5 deadend_E2};
+    b3 -> {c6 deadend_E3};
+    c1 -> {d1 d2 d3};
+    c2 -> {d4 d5};
+    c3 -> {d6};
+    c4 -> {d7 d8};
+    c5 -> {d9};
+    c6 -> {d10};
+    deadend_D -> deadend_E4;
+    
+    a1 [label = "5 choose 3 = 10\n'(A B C D E)";];
+    b1 [label = "A";];
+    b2 [label = "B";];
+    b3 [label = "C";];
+    
+    
+    c1 [label = "B";];
+    c2 [label = "C";];
+    c3 [label = "D";];
+    c4 [label = "C";];
+    c5 [label = "D";];
+    c6 [label = "D";];
+    
+    d1 [label = "C";];
+    d2 [label = "D";];
+    d3 [label = "E";];
+    d4 [label = "D";];
+    d5 [label = "E";];
+    d6 [label = "E";];
+    d7 [label = "D";];
+    d8 [label = "E";];
+    d9 [label = "E";];
+    d10 [label = "E";];
+    
+    deadend_D [label = "D";style = filled;fillcolor = lightgrey;];
+    deadend_E0 [label = "E: nope";style = filled;fillcolor = gray;];
+    deadend_E1 [label = "E: nope";style = filled;fillcolor = gray;];
+    deadend_E2 [label = "E: nope";style = filled;fillcolor = gray;];
+    deadend_E3 [label = "E: nope";style = filled;fillcolor = gray;];
+    deadend_E4 [label = "E: nope";style = filled;fillcolor = gray;];
+}

@@ -1,0 +1,19 @@
+digraph combinations {
+    a1 -> {b1 b2 b3};
+    b1 -> {c1 c2 c3};
+    b2 -> {c4 c5};
+    b3 -> {c6};
+    
+    a1 [label = "4 choose 2 = 6\n'(A B C D)";];
+    b1 [label = "A";];
+    b2 [label = "B";];
+    b3 [label = "C";];
+    
+    
+    c1 [label = "B";];
+    c2 [label = "C";];
+    c3 [label = "D";];
+    c4 [label = "C";];
+    c5 [label = "D";];
+    c6 [label = "D";];
+}

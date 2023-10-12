@@ -1,0 +1,3 @@
+#!/bin/bash
+
+utop ./bin/wip.ml.txt | tail -n+4 | colout '(.*<--)(.*)' white faint | colout '(.*-->)(.*)' blue,white bold

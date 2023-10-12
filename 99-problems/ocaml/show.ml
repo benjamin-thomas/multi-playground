@@ -23,3 +23,8 @@ let int_list lst =
   let body = String.concat "; " items in
   "[" ^ body ^ "]"
 ;;
+
+let int_list_list lst =
+  let body = String.concat "; " (List.map int_list lst) in
+  "[" ^ body ^ "]"
+;;
