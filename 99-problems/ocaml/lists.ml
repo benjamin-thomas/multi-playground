@@ -1224,58 +1224,6 @@ let%expect_test _ =
   ; [%expect {| [['A'; 'B'; 'C'; 'D']] |}]
 ;;
 
-(* let rec comb acc rest n =
-     if n = 0 then
-       [ acc ]
-     else
-       match rest with
-       | [] -> []
-       | hd :: tl -> comb (acc ^ hd) tl (n - 1) @ comb acc tl n
-   ;; *)
-(*
-let rec comb2 acc rest n =
-  if n = 0 then
-    [ List.rev acc ]
-  else
-    match rest with
-    | [] -> []
-    | x :: xs -> comb2 (x :: acc) xs (n - 1) @ comb2 acc xs n
-;;
-
-let comb3 acc rest n =
-  let rec comb3_helper acc' rest' n' =
-    match n' with
-    | 0 -> [ List.rev acc' ]
-    | _ -> (
-        match rest' with
-        | [] -> []
-        | hd :: tl ->
-            comb3_helper (hd :: acc') tl (n' - 1) @ comb3_helper acc' tl n')
-  in
-  comb3_helper acc rest n
-;; *)
-
-[@@@warning "-27-21"]
-(*
-let rec extract3_sub lst =
-  if List.length lst = 3 then
-    [ lst ]
-  else
-    match lst with
-    | [] -> []
-    | h :: t -> [ [ 0; 0; 0 ]; [ 1; 1; 1 ] ] @ extract3_sub t
-;;
-
-let%expect_test _ =
-  let print lst = print_string @@ Show.int_list_list lst in
-  ()
-  ; print @@ extract3_sub [ 3; 4; 5 ]
-  ; [%expect {|[[3; 4; 5]]|}]
-  ; ()
-  ; print @@ extract3_sub [ 2; 3; 4; 5 ]
-  ; [%expect {|[]|}]
-;; *)
-
 (*
 
 Given a set of n things, there are 2n combinations.
@@ -1291,14 +1239,6 @@ Produce the combinations for the list [a, b, c]
 8. [a,b,c]
 
 *)
-
-type prepend_args = { elem : char; coll : char list list }
-
-let prepend { elem; coll } : char list list = List.map (List.cons elem) coll
-
-type append_args = { left : char list list; right : char list list }
-
-let append { left; right } = left @ right
 
 let rec sub_sets (lst : char list) =
   match lst with
