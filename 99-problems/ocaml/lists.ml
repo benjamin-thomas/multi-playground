@@ -1285,3 +1285,65 @@ let%expect_test _ =
   ; print @@ extract3 4 [ 'A'; 'B'; 'C'; 'D' ]
   ; [%expect {| [['A'; 'B'; 'C'; 'D']] |}]
 ;;
+
+(*
+ * 27 - Group the elements of a set into disjoint subsets.
+ * TODO: I'm skipping this exercise for now.
+ * TODO: I haven't internalized ex. 26 yet, so trying to tackle this one now would be counter-productive.
+ *)
+
+(*
+
+1. In how many ways can a group of 9 people work in 3 disjoint subgroups of 2, 3 and 4 persons?
+   Write a function that generates all the possibilities and returns them in a list.
+
+2. Generalize the above function in a way that we can specify a list of group sizes and the
+   function will return a list of groups.
+
+let input = group [ "a"; "b"; "c"; "d" ] [ 2; 1 ]
+
+let output =
+  [ [ [ "a"; "b" ]; [ "c" ] ]
+  ; [ [ "a"; "c" ]; [ "b" ] ]
+  ; [ [ "b"; "c" ]; [ "a" ] ]
+  ; [ [ "a"; "b" ]; [ "d" ] ]
+  ; [ [ "a"; "c" ]; [ "d" ] ]
+  ; [ [ "b"; "c" ]; [ "d" ] ]
+  ; [ [ "a"; "d" ]; [ "b" ] ]
+  ; [ [ "b"; "d" ]; [ "a" ] ]
+  ; [ [ "a"; "d" ]; [ "c" ] ]
+  ; [ [ "b"; "d" ]; [ "c" ] ]
+  ; [ [ "c"; "d" ]; [ "a" ] ]
+  ; [ [ "c"; "d" ]; [ "b" ] ]
+  ]
+;;
+
+---
+
+Here's the LISP problem (better) explained:
+
+a) In how many ways can a group of 9 people work in 3 disjoint subgroups of 2, 3 and 4 persons?
+   Write a function that generates all the possibilities and returns them in a list.
+
+Example:
+* (group3 '(aldo beat carla david evi flip gary hugo ida))
+( ( (ALDO BEAT) (CARLA DAVID EVI) (FLIP GARY HUGO IDA) )
+... )
+
+b) Generalize the above function in a way that we can specify a list of group sizes and the function
+   will return a list of groups.
+
+Example:
+* (group '(aldo beat carla david evi flip gary hugo ida) '(2 2 5))
+( ( (ALDO BEAT) (CARLA DAVID) (EVI FLIP GARY HUGO IDA) )
+... )
+
+Note that we do not want permutations of the group members;
+i.e. ((ALDO BEAT) ...) is the same solution as ((BEAT ALDO) ...).
+
+However, we make a difference between ((ALDO BEAT) (CARLA DAVID) ...) and ((CARLA DAVID) (ALDO BEAT) ...).
+
+You may find more about this combinatorial problem in a good book on discrete mathematics
+under the term "multinomial coefficients".
+
+ *)
