@@ -1347,3 +1347,100 @@ You may find more about this combinatorial problem in a good book on discrete ma
 under the term "multinomial coefficients".
 
  *)
+
+(*
+ * 28 - Sorting a list of lists according to length of sublists
+
+ 1. (length_sort)
+    We suppose that a list contains elements that are lists themselves.
+    The objective is to sort the elements of this list according to their length.
+    E.g. short lists first, longer lists later, or vice versa.
+
+ 2. (frequency_sort)
+    Again, we suppose that a list contains elements that are lists themselves.
+    But this time the objective is to sort the elements of this list according to their
+    length frequency; i.e., in the default, where sorting is done ascendingly, lists
+    with rare lengths are placed first, others with a more frequent length come later.
+
+ *)
+
+let length_sort = List.sort (fun a b -> List.length a - List.length b)
+
+let%expect_test _ =
+  let print lst = print_string @@ Show.char_list_list lst in
+  ()
+  ; print
+    @@ length_sort
+         [ [ 'a'; 'b'; 'c' ]
+         ; [ 'd'; 'e' ]
+         ; [ 'f'; 'g'; 'h' ]
+         ; [ 'd'; 'e' ]
+         ; [ 'i'; 'j'; 'k'; 'l' ]
+         ; [ 'm'; 'n' ]
+         ; [ 'o' ]
+         ]
+  ; [%expect
+      {|[['o']; ['d'; 'e']; ['d'; 'e']; ['m'; 'n']; ['a'; 'b'; 'c']; ['f'; 'g'; 'h']; ['i'; 'j'; 'k'; 'l']]|}]
+;;
+
+let group_by f lst =
+  let rec aux acc f = function
+    | [] -> acc
+    | h :: t ->
+        let new_acc =
+          let n = f h in
+          match List.assoc_opt n acc with
+          | None -> (n, [ h ]) :: acc
+          | Some t2 -> (n, h :: t2) :: List.remove_assoc n acc
+        in
+        aux new_acc f t
+  in
+  aux [] f lst
+;;
+
+let frequency_sort lst =
+  lst
+  |> group_by List.length
+  |> List.map (fun (_, values) ->
+         (List.length values, List.sort compare values))
+  |> List.sort compare
+  |> List.map (fun (_, values) -> values)
+  |> List.flatten
+;;
+
+let%expect_test _ =
+  (*
+    Pretty easy to do in Ruby:
+    lst = [%w[a b c], %w[d e], %w[f g h], %w[d e], %w[i j k l], %w[m n], %w[o]]
+    lst.group_by(&:length).values.sort_by(&:length).map(&:flatten)
+
+    Clojure:
+    (def lst '((a b c) (d e) (f g h) (d e) (i j k l) (m n) (o)))
+    (->> lst (group-by count) (vals) (sort-by count) (map #(apply list %1)))
+
+    Elixir:
+    lst = [['a', 'b', 'c'], ['d', 'e'], ['f', 'g', 'h'], ['d', 'e'], ['i', 'j', 'k', 'l'], ['m', 'n'], ['o']]
+    lst |> Enum.group_by(&length(&1)) |> Map.values |> Enum.sort_by(fn(a) -> {length(a), Enum.at(a, 0)} end) |> Enum.flat_map(&(&1))
+
+    F#:
+    let lst = [['a';'b';'c'];['d';'e'];['f';'g';'h'];['d';'e'];['i';'j';'k';'l'];['m';'n'];['o']];;
+    lst |> List.groupBy List.length |> List.map (fun (_, values) -> values) |> List.sortBy List.length |> List.collect id;;
+
+    Haskell: -> (??)
+    lst = [["a", "b", "c"], ["d", "e"], ["f", "g", "h"], ["d", "e"], ["i", "j", "k", "l"], ["m", "n"], ["o"]]
+   *)
+  let print lst = print_string @@ Show.char_list_list lst in
+  ()
+  ; print
+    @@ frequency_sort
+         [ [ 'a'; 'b'; 'c' ]
+         ; [ 'd'; 'e' ]
+         ; [ 'f'; 'g'; 'h' ]
+         ; [ 'd'; 'e' ]
+         ; [ 'i'; 'j'; 'k'; 'l' ]
+         ; [ 'm'; 'n' ]
+         ; [ 'o' ]
+         ]
+  ; [%expect
+      {|[['i'; 'j'; 'k'; 'l']; ['o']; ['a'; 'b'; 'c']; ['f'; 'g'; 'h']; ['d'; 'e']; ['d'; 'e']; ['m'; 'n']]|}]
+;;
