@@ -1404,7 +1404,7 @@ let frequency_sort lst =
   |> List.map (fun (_, values) ->
          (List.length values, List.sort compare values))
   |> List.sort compare
-  |> List.map (fun (_, values) -> values)
+  |> List.map snd
   |> List.flatten
 ;;
 
