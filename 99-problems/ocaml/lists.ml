@@ -1384,6 +1384,7 @@ let%expect_test _ =
 ;;
 
 let group_by f lst =
+  (* bad perf/naive impl. Redefined below. *)
   let rec aux acc f = function
     | [] -> acc
     | h :: t ->
@@ -1396,6 +1397,142 @@ let group_by f lst =
         aux new_acc f t
   in
   aux [] f lst
+;;
+
+let%test _ =
+  group_by List.length
+    [ [ 'a'; 'b'; 'c' ]
+    ; [ 'd'; 'e' ]
+    ; [ 'f'; 'g'; 'h' ]
+    ; [ 'd'; 'e' ]
+    ; [ 'i'; 'j'; 'k'; 'l' ]
+    ; [ 'm'; 'n' ]
+    ; [ 'o' ]
+    ]
+  = [ (1, [ [ 'o' ] ])
+    ; (2, [ [ 'm'; 'n' ]; [ 'd'; 'e' ]; [ 'd'; 'e' ] ])
+    ; (4, [ [ 'i'; 'j'; 'k'; 'l' ] ])
+    ; (3, [ [ 'f'; 'g'; 'h' ]; [ 'a'; 'b'; 'c' ] ])
+    ]
+;;
+
+let%test _ =
+  group_by List.length [ [ 1; 2; 3 ]; [ 4; 5 ]; []; [ 7; 8 ]; [ 9; 10; 11 ] ]
+  = [ (3, [ [ 9; 10; 11 ]; [ 1; 2; 3 ] ])
+    ; (2, [ [ 7; 8 ]; [ 4; 5 ] ])
+    ; (0, [ [] ])
+    ]
+;;
+
+let%test _ =
+  let lt x n = n < x in
+  group_by (lt 10) [ 2; 4; 8; 16; 32; 64 ]
+  = [ (false, [ 64; 32; 16 ]); (true, [ 8; 4; 2 ]) ]
+;;
+
+let group_contiguous lst =
+  let rec aux prev acc acc2 = function
+    | [] -> (
+        match acc with
+        | [] -> acc2
+        | _ -> (prev, acc) :: acc2)
+    | (n, xs) :: t ->
+        if n = prev then
+          aux n (xs :: acc) acc2 t
+        else
+          aux n [ xs ] ((prev, acc) :: acc2) t
+  in
+  match lst with
+  | [] -> []
+  | (n, xs) :: t -> aux n [ xs ] [] t
+;;
+
+let%test _ =
+  group_contiguous
+    [ (1, [ 'a'; 'b'; 'c' ])
+    ; (1, [ 'd'; 'e' ])
+    ; (1, [ 'f' ])
+    ; (1, [])
+    ; (2, [ 'x'; 'y'; 'z' ])
+    ]
+  = [ (2, [ [ 'x'; 'y'; 'z' ] ])
+    ; (1, [ []; [ 'f' ]; [ 'd'; 'e' ]; [ 'a'; 'b'; 'c' ] ])
+    ]
+;;
+
+let group_by f lst =
+  (* better impl, good perf *)
+  lst
+  |> List.map (fun sub_lst -> (f sub_lst, sub_lst))
+  |> List.sort (fun a b -> compare (fst a) (fst b))
+  |> group_contiguous
+;;
+
+let%test _ =
+  group_by List.length
+    [ [ 'a'; 'b'; 'c' ]
+    ; [ 'd'; 'e' ]
+    ; [ 'f'; 'g'; 'h' ]
+    ; [ 'd'; 'e' ]
+    ; [ 'i'; 'j'; 'k'; 'l' ]
+    ; [ 'm'; 'n' ]
+    ; [ 'o' ]
+    ]
+  = [ (4, [ [ 'i'; 'j'; 'k'; 'l' ] ])
+    ; (3, [ [ 'f'; 'g'; 'h' ]; [ 'a'; 'b'; 'c' ] ])
+    ; (2, [ [ 'm'; 'n' ]; [ 'd'; 'e' ]; [ 'd'; 'e' ] ])
+    ; (1, [ [ 'o' ] ])
+    ]
+;;
+
+let%test _ =
+  group_by List.length [ [ 1; 2; 3 ]; [ 4; 5 ]; []; [ 7; 8 ]; [ 9; 10; 11 ] ]
+  = [ (3, [ [ 9; 10; 11 ]; [ 1; 2; 3 ] ])
+    ; (2, [ [ 7; 8 ]; [ 4; 5 ] ])
+    ; (0, [ [] ])
+    ]
+;;
+
+let group_by f lst =
+  (* Hash map impl, good overall perf *)
+  let tbl = Hashtbl.create 1024 in
+  let rec aux = function
+    | [] -> ()
+    | h :: t ->
+        let key = f h in
+        let curr = Hashtbl.find_opt tbl key |> Option.value ~default:[] in
+        ()
+        ; Hashtbl.replace tbl key (h :: curr)
+        ; aux t
+  in
+  ()
+  ; aux lst
+  ; Hashtbl.fold (fun k v acc -> (k, v) :: acc) tbl []
+;;
+
+let%test _ =
+  group_by List.length
+    [ [ 'a'; 'b'; 'c' ]
+    ; [ 'd'; 'e' ]
+    ; [ 'f'; 'g'; 'h' ]
+    ; [ 'd'; 'e' ]
+    ; [ 'i'; 'j'; 'k'; 'l' ]
+    ; [ 'm'; 'n' ]
+    ; [ 'o' ]
+    ]
+  = [ (3, [ [ 'f'; 'g'; 'h' ]; [ 'a'; 'b'; 'c' ] ])
+    ; (4, [ [ 'i'; 'j'; 'k'; 'l' ] ])
+    ; (1, [ [ 'o' ] ])
+    ; (2, [ [ 'm'; 'n' ]; [ 'd'; 'e' ]; [ 'd'; 'e' ] ])
+    ]
+;;
+
+let%test _ =
+  group_by List.length [ [ 1; 2; 3 ]; [ 4; 5 ]; []; [ 7; 8 ]; [ 9; 10; 11 ] ]
+  = [ (3, [ [ 9; 10; 11 ]; [ 1; 2; 3 ] ])
+    ; (0, [ [] ])
+    ; (2, [ [ 7; 8 ]; [ 4; 5 ] ])
+    ]
 ;;
 
 let frequency_sort lst =
