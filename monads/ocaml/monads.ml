@@ -34,7 +34,15 @@ let add_c a b c =
   | _ -> None
 ;;
 
+let product o1 o2 =
+  match (o1, o2) with
+  | Some x, Some y -> Some (x, y)
+  | _ -> None
+;;
+
 let ( let* ) = Option.bind
+let ( let+ ) o f = Option.map f o
+let ( and+ ) = product
 
 let add_d a b c =
   let* x = a in
@@ -66,6 +74,9 @@ let apply opt_a opt_b =
   | Some value, Some fn -> Some (fn value)
   | _, _ -> None
 ;;
+
+let ( <*> ) a b = apply b a
+let pure x = Some x
 
 let add_f a b c =
   Some (fun x y z -> x + y + z)
@@ -109,6 +120,22 @@ let add_i a b c =
      |> and_then (fun partial -> Result.map partial b)
      |> and_then (fun partial -> Result.map partial c)
    [@@ocamlformat "disable"]
+
+(* https://jobjo.github.io/2019/04/24/ocaml-has-some-new-shiny-syntax.html *)
+let add_j a b c =
+  let+ x = a
+  and+ y = b
+  and+ z = c in
+  x + y + z
+[@@ocamlformat "disable"]
+
+(* https://jobjo.github.io/2019/04/24/ocaml-has-some-new-shiny-syntax.html *)
+let add_k a b c =
+  pure (fun x y z -> x + y + z)
+  <*> a
+  <*> b
+  <*> c
+[@@ocamlformat "disable"]
 
 (* MAIN *)
 
@@ -186,6 +213,18 @@ let _ =
   ; printRes2 "add_i (Error 'Oops1') (Ok 2) (Ok 3)         " @@ add_i (Error "Oops1") (Ok 2) (Ok 3)
   ; printRes2 "add_i (Ok 1) (Error 'Oops2') (Ok 3)         " @@ add_i (Ok 1) (Error "Oops2") (Ok 3)
   ; printRes2 "add_i (Ok 1) (Error 'Oops2') (Error 'Oops3')" @@ add_i (Ok 1) (Error "Oops2") (Error "Oops3")
+  ; print_endline ""
+  ; (* Applicative style *)
+  printRes "add_j (Some 1) (Some 2) (Some 3)" @@ add_j (Some 1) (Some 2) (Some 3)
+  ; printRes "add_j None (Some 2) (Some 3)    " @@ add_j None (Some 2) (Some 3)
+  ; printRes "add_j (Some 1) None (Some 3)    " @@ add_j (Some 1) None (Some 3)
+  ; printRes "add_j (Some 1) None None        " @@ add_j (Some 1) None (Some 3)
+  ; print_endline ""
+  ; (* Applicative style2 *)
+  printRes "add_k (Some 1) (Some 2) (Some 3)" @@ add_k (Some 1) (Some 2) (Some 3)
+  ; printRes "add_k None (Some 2) (Some 3)    " @@ add_k None (Some 2) (Some 3)
+  ; printRes "add_k (Some 1) None (Some 3)    " @@ add_k (Some 1) None (Some 3)
+  ; printRes "add_k (Some 1) None None        " @@ add_k (Some 1) None (Some 3)
   ; print_endline ""
 [@@ocamlformat "disable"]
 
