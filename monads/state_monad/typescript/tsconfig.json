@@ -1,0 +1,11 @@
+{
+  "extends": "@tsconfig/strictest/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "noEmitOnError": true,
+    "lib": [
+      "es2020",
+    ],
+    "allowUnusedLabels": true
+  },
+}

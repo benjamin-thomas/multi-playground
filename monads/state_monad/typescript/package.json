@@ -1,0 +1,9 @@
+{
+  "name": "state-monad",
+  "devDependencies": {
+    "@tsconfig/strictest": "^2.0.2",
+    "@types/node": "^20.9.1",
+    "fp-ts": "^2.16.1",
+    "typescript": "^5.0.0"
+  }
+}
