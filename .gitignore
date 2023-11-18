@@ -21,6 +21,8 @@
 **/.gradle/
 **/java/*.class
 
+**/scala/**/target/
+
 # Elm
 **/elm-stuff/
 
