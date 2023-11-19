@@ -1,0 +1,10 @@
+(library
+ (name play)
+ (inline_tests)
+ (preprocess
+  (pps
+   ppx_inline_test ; inline-tests backend (provides let%test, let%test_unit, let%test_module)
+   ppx_assert ; backend impl (provides [%test_eq: typ], [%test_result: typ], [%test_pred: typ])
+   ppx_jane ; provides: let%expect_test
+   ))
+ (libraries preface))
