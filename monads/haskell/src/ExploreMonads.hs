@@ -2,7 +2,7 @@
 
 {-# HLINT ignore "Replace case with maybe" #-}
 
-module Monads where
+module ExploreMonads where
 
 -------------------------------------------------------------------------------
 -- VERBOSE STYLE

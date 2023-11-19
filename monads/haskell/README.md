@@ -19,16 +19,26 @@ I had to `rm -rf ~/.cabal` and redo the setup steps to make `doctest` happy.
 cabal exec doctest src/
 ```
 
-### Option 2
+### Option 2a
 ```
 cabal repl
 ghci> :!doctest ./src/Monads.hs
 ```
 
-### Option 3
+###  Option 2b
 
 ```
-ghcid --command 'cabal repl' --test ':!doctest ./src/Monads.hs'
+cabal repl
+ghci> :cmd return $ unlines [":reload", ":!doctest ./src/"]
+```
+
+### Option 3 (the best!)
+
+```
+$ ghcid --command 'cabal repl' --test ':!doctest ./src/ExploreMonads.hs'
+
+# Or
+$ ghcid --command 'cabal repl' --test ':!doctest ./src/'
 ```
 
 ### Option 4
