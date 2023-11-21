@@ -1,6 +1,6 @@
 type 'a my_box = My_box of 'a [@@deriving sexp, compare]
 
-module Box = Preface.Make.Functor.Via_map (struct
+module My_box = Preface.Make.Functor.Via_map (struct
     type 'a t = 'a my_box
 
     let map f (My_box x) = My_box (f x)
@@ -28,15 +28,15 @@ let%test_module _ =
     let repeat x = x ^ x
 
     (* ints *)
-    let%test_unit _ = eq (My_box 4) (Box.map double (My_box 2))
+    let%test_unit _ = eq (My_box 4) (My_box.map double (My_box 2))
 
     let%test_unit _ =
-      let open Box in
+      let open My_box in
       eq (My_box 6) (double <$> My_box 3)
     ;;
 
     let%test_unit _ =
-      let open Box in
+      let open My_box in
       ()
       ; eq (My_box 6) (double <$> My_box 3)
       ; eq (My_box 0) (My_box 3 $> 0)
@@ -44,10 +44,10 @@ let%test_module _ =
     ;;
 
     (* strings *)
-    let%test_unit _ = eq' (My_box "aa") (Box.map repeat (My_box "a"))
+    let%test_unit _ = eq' (My_box "aa") (My_box.map repeat (My_box "a"))
 
     let%test_unit _ =
-      let open Box in
+      let open My_box in
       ()
       ; eq' (My_box "bbbb") (repeat <$> My_box "bb")
       ; eq' (My_box "overwritten") (My_box "cc" $> "overwritten")
