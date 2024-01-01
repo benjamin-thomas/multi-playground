@@ -23,7 +23,7 @@ Test(about_control_statements, ifs)
         var = 2;
 
     /* To pass this test, determine where the control flow will go. */
-    cr_assert_eq(var, TODO, "If statements work just like other languages");
+    cr_assert_eq(var, 1, "If statements work just like other languages");
 
     /* Of course, C also has the familiar else-if */
     if (1 > 2)
@@ -33,7 +33,7 @@ Test(about_control_statements, ifs)
     else
         var = 4;
 
-    cr_assert_eq(var, TODO, "Determine the control flow for this block, too");
+    cr_assert_eq(var, 4, "Determine the control flow for this block, too");
 }
 
 Test(about_control_statements, switch_block)
@@ -58,7 +58,7 @@ Test(about_control_statements, switch_block)
         break;
     }
 
-    cr_assert_eq(var, TODO, "Determine the control flow for this block.");
+    cr_assert_eq(var, 200, "Determine the control flow for this block.");
 }
 
 Test(about_control_statements, loops)
@@ -82,7 +82,7 @@ Test(about_control_statements, loops)
     }
 
     cr_assert_eq(
-        var, TODO, "Determine the result of the execution of this loop.");
+        var, 10, "Determine the result of the execution of this loop.");
 
     /*
         The for loop should also feel familiar.
@@ -104,7 +104,7 @@ Test(about_control_statements, loops)
         have any statements.
     */
     cr_assert_eq(
-        var, TODO, "Determine the result of the for loop's execution.");
+        var, 10, "Determine the result of the for loop's execution.");
 
     /*
         The final loop, the do-while, executes the same as the while,
@@ -117,7 +117,7 @@ Test(about_control_statements, loops)
     } while (var < 10);
 
     cr_assert_eq(
-        var, TODO, "Determine the result of the do-while loop's execution");
+        var, 10, "Determine the result of the do-while loop's execution");
 }
 
 Test(about_control_statements, goto_and_labels)
@@ -141,5 +141,5 @@ Test(about_control_statements, goto_and_labels)
     */
 label:
     cr_assert_eq(
-        var, TODO, "Determine the result of the flow of the function.");
+        var, 10, "Determine the result of the flow of the function.");
 }
