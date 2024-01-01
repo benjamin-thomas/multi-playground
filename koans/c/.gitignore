@@ -1,0 +1,8 @@
+bin/
+build/
+*.o
+.vscode/
+*~
+#*#
+.project
+.settings/
