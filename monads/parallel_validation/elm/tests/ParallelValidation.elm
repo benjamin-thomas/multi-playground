@@ -40,9 +40,9 @@ testParallelValidation =
         tests =
             [ \() -> 100 + 20 |> Expect.equal 120
             , \() -> add 10 1 |> Expect.equal (Ok 11)
-            , \() -> add 0 33 |> Expect.equal (Err [ "Not positive: 0" ])
-            , \() -> add 1 -3 |> Expect.equal (Err [ "Not positive: -3" ])
-            , \() -> add 0 -3 |> Expect.equal (Err [ "Not positive: -3", "Not positive: 0" ])
+            , \() -> add 0 10 |> Expect.equal (Err [ "Not positive: 0" ])
+            , \() -> add 10 0 |> Expect.equal (Err [ "Not positive: 0" ])
+            , \() -> add 0 -1 |> Expect.equal (Err [ "Not positive: -1", "Not positive: 0" ])
             ]
     in
     Test.concat <|

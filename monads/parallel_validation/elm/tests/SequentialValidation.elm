@@ -19,14 +19,14 @@ add a b =
 
 testSequentialValidation : Test
 testSequentialValidation =
-    -- Computation will stop on the first error
+    -- Computation will stop on the first error (from the right)
     let
         tests =
             [ \() -> 100 + 20 |> Expect.equal 120
             , \() -> add 1 10 |> Expect.equal (Ok 11)
             , \() -> add 0 33 |> Expect.equal (Err "Not positive: 0")
-            , \() -> add 1 -3 |> Expect.equal (Err "Not positive: -3")
-            , \() -> add 0 -3 |> Expect.equal (Err "Not positive: -3")
+            , \() -> add 10 0 |> Expect.equal (Err "Not positive: 0")
+            , \() -> add 0 -1 |> Expect.equal (Err "Not positive: -1")
             ]
     in
     Test.concat <|
