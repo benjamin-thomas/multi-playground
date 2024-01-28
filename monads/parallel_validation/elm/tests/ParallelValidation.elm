@@ -5,17 +5,17 @@ import Expect
 import Test exposing (Test, test)
 
 
-map2 : (value -> a -> b) -> Result appendable value -> Result appendable a -> Result appendable b
+map2 : (a -> b -> c) -> Result appendable a -> Result appendable b -> Result appendable c
 map2 f ra rb =
     case ( ra, rb ) of
-        ( Err ea, Err eb ) ->
-            Err <| (ea ++ eb)
+        ( Err xa, Err xb ) ->
+            Err (xa ++ xb)
 
-        ( Err ea, Ok _ ) ->
-            Err <| ea
+        ( Err x, Ok _ ) ->
+            Err x
 
-        ( Ok _, Err eb ) ->
-            Err <| eb
+        ( Ok _, Err x ) ->
+            Err x
 
         ( Ok a, Ok b ) ->
             Ok <| f a b
