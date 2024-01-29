@@ -15,25 +15,36 @@ import Parser as P
 import Test exposing (Test, describe, test)
 
 
+testListParser : Test
 testListParser =
     let
-        parseList =
+        innerListParser : Parser (List String)
+        innerListParser =
             P.chompWhile (\c -> c /= ']')
                 |> P.getChompedString
+                |> P.map (\str -> str |> String.split "," |> List.map String.trim)
 
-        parser : Parser Int
-        parser =
+        stringListParser : Parser (List String)
+        stringListParser =
             P.succeed identity
                 |. P.symbol "["
-                |= (parseList
-                        |> P.map (\str -> String.split "," str |> List.length)
-                   )
+                |= innerListParser
+
+        intListParser : Parser (List Int)
+        intListParser =
+            P.succeed identity
+                |. P.symbol "["
+                |= (innerListParser |> P.map (List.map (String.toInt >> Maybe.withDefault 0)))
     in
-    describe "list parser"
-        [ test "a" <|
+    describe "list parsers"
+        [ test "strings" <|
             \() ->
-                P.run parser "[12,b,c]"
-                    |> Expect.equal (Ok 3)
+                P.run stringListParser "[ 1, 2 , 3 ]"
+                    |> Expect.equal (Ok [ "1", "2", "3" ])
+        , test "ints" <|
+            \() ->
+                P.run intListParser "[ 1, 2 , 3 ]"
+                    |> Expect.equal (Ok [ 1, 2, 3 ])
         ]
 
 
