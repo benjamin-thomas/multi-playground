@@ -55,42 +55,118 @@ type alias SpecialCode =
     }
 
 
-specialCodeParser : Test
-specialCodeParser =
+parser : Parser SpecialCode
+parser =
     let
-        -- parseItem _ =
-        --     succeed 3
-        --         |. symbol "répéter="
-        --         |= int
-        checkElements : String -> Parser Int
+        checkElements : String -> Parser SpecialCode
         checkElements str =
-            case String.split "," str of
-                [ a, b, c ] ->
-                    P.succeed 0
+            let
+                keysAndValues : List (List String)
+                keysAndValues =
+                    String.split "," str
+                        |> List.map String.trim
+                        |> List.sort
+                        |> List.map (String.split "=" >> List.map String.trim)
+            in
+            case keysAndValues of
+                [ [ "alert", alertMsg ], [ "always", yn ], [ "repeat", nStr ] ] ->
+                    Maybe.withDefault (P.problem "One or more invalid values (or keys)") <|
+                        Maybe.map2 (\num bool -> P.succeed (SpecialCode num alertMsg bool))
+                            (String.toInt nStr)
+                            (case yn of
+                                "YES" ->
+                                    Just True
+
+                                "NO" ->
+                                    Just False
+
+                                _ ->
+                                    Nothing
+                            )
 
                 _ ->
-                    P.problem "Invalid number of elements"
+                    P.problem "One or more invalid keys (not in [alert,always,repeat])"
 
-        parseList : Parser Int
+        parseList : Parser SpecialCode
         parseList =
-            P.getChompedString (P.chompWhile (\c -> c /= ']'))
+            P.getChompedString
+                (P.chompWhile (\c -> c /= ']'))
                 |> P.andThen checkElements
 
-        parser : Parser SpecialCode
-        parser =
-            P.succeed (\x -> SpecialCode x "wat" True)
-                |. P.symbol "myCode"
+        parser_ : Parser SpecialCode
+        parser_ =
+            P.succeed identity
+                |. P.symbol "specialCode"
                 |. P.symbol "["
                 |= parseList
     in
+    parser_
+
+
+specialCodeParser : Test
+specialCodeParser =
     describe "specialCodeParser"
         [ test "valid input" <|
             \() ->
-                P.run parser "myCode[répéter=3,alerte=Le seuil a été dépassé,tjs=OUI]"
-                    |> Expect.equal (Ok { repeat = 0, notice = "wat", alwaysRun = True })
-
-        -- , test "invalidInput" <|
-        --     \() ->
-        --         run parser "wat"
-        --             |> Expect.equal (Err [ { col = 1, problem = ExpectingSymbol "myCode", row = 1 } ])
+                P.run parser "specialCode[repeat=3,alert=Some limit has been reached,always=YES]"
+                    |> Expect.equal
+                        (Ok
+                            { repeat = 3
+                            , notice = "Some limit has been reached"
+                            , alwaysRun = True
+                            }
+                        )
+        , test "invalidInput" <|
+            \() ->
+                P.run parser "wat"
+                    |> Expect.equal
+                        (Err
+                            [ { col = 1
+                              , problem = P.ExpectingSymbol "specialCode"
+                              , row = 1
+                              }
+                            ]
+                        )
+        , test "unclean input parses correctly" <|
+            \() ->
+                P.run parser "specialCode[ repeat =4, alert = Some limit has been reached,  always= YES  ]"
+                    |> Expect.equal
+                        (Ok
+                            { repeat = 4
+                            , notice = "Some limit has been reached"
+                            , alwaysRun = True
+                            }
+                        )
+        , test "out of order keys parses" <|
+            \() ->
+                P.run parser "specialCode[alert=Reached bottom,repeat=5,always=NO]"
+                    |> Expect.equal
+                        (Ok
+                            { repeat = 5
+                            , notice = "Reached bottom"
+                            , alwaysRun = False
+                            }
+                        )
+        , test "rejects bad values" <|
+            \() ->
+                P.run parser "specialCode[alert=wat,repeat=5,always=NOO!]"
+                    |> Expect.equal
+                        (Err
+                            [ { col = 43
+                              , problem = P.Problem "One or more invalid values (or keys)"
+                              , row = 1
+                              }
+                            ]
+                        )
+        , test "rejects bad keys" <|
+            \() ->
+                P.run parser "specialCode[hey=wat,repeat=5,always=YES]"
+                    |> Expect.equal
+                        (Err
+                            [ { col = 40
+                              , problem = P.Problem "One or more invalid keys (not in [alert,always,repeat])"
+                              , row = 1
+                              }
+                            ]
+                        )
         ]

@@ -1,7 +1,22 @@
 module DateParserTest exposing (..)
 
 import Expect
-import Parser exposing ((|.), (|=), Parser, Problem(..), andThen, chompIf, chompWhile, getChompedString, int, oneOf, problem, run, succeed, symbol)
+import Parser
+    exposing
+        ( (|.)
+        , (|=)
+        , Parser
+        , Problem(..)
+        , andThen
+        , chompIf
+        , chompWhile
+        , getChompedString
+        , int
+        , problem
+        , run
+        , succeed
+        , symbol
+        )
 import String
 import Test exposing (..)
 
@@ -191,10 +206,6 @@ dateParser =
 
         parser : Parser Date
         parser =
-            let
-                apply x =
-                    Parser.andThen (\partial -> Parser.map partial x)
-            in
             succeed Date
                 |= digit
                 |. symbol "."
