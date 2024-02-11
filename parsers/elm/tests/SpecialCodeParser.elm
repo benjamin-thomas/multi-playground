@@ -47,10 +47,18 @@ type Repeat
     = Repeat Int
 
 
+type Notice
+    = Notice String
+
+
+type AlwaysRun
+    = AlwaysRun Bool
+
+
 type alias SpecialCode =
     { repeat : Repeat
-    , notice : String
-    , alwaysRun : Bool
+    , notice : Notice
+    , alwaysRun : AlwaysRun
     }
 
 
@@ -59,6 +67,48 @@ repeatParser =
     P.succeed Repeat
         |. P.symbol "repeat="
         |= P.int
+
+
+noticeParser : Parser Notice
+noticeParser =
+    P.succeed Notice
+        |. P.keyword "notice"
+        |. P.spaces
+        |. P.symbol "="
+        |. P.spaces
+        |= P.oneOf
+            [ P.symbol "=" |> P.andThen (\() -> P.problem "double eq!")
+            , P.chompUntilEndOr "\n" |> P.getChompedString
+            ]
+
+
+noticeParserTest : Test
+noticeParserTest =
+    let
+        test_ n ( inp, exp ) =
+            test ("parse notice #" ++ String.fromInt n) <|
+                \() -> P.run noticeParser inp |> Expect.equal exp
+    in
+    describe "noticeParserTest" <|
+        List.indexedMap test_ <|
+            [ ( "notice=Hello World!"
+              , Ok (Notice "Hello World!")
+              )
+            , ( ""
+              , Err [ { col = 1, problem = P.ExpectingKeyword "notice", row = 1 } ]
+              )
+            , ( "notice==Hello World!"
+              , Err
+                    [ { col = 9
+                      , problem = P.Problem "double eq!"
+                      , row = 1
+                      }
+                    ]
+              )
+            , ( "notice = Hello World!"
+              , Ok (Notice "Hello World!")
+              )
+            ]
 
 
 repeatParserTest : Test
@@ -106,6 +156,66 @@ repeatParserTest =
             ]
 
 
+alwaysRunParser : Parser AlwaysRun
+alwaysRunParser =
+    let
+        bool =
+            P.chompUntilEndOr "\n"
+                |> P.getChompedString
+                |> P.andThen
+                    (\str ->
+                        case str of
+                            "YES" ->
+                                P.succeed True
+
+                            "NO" ->
+                                P.succeed False
+
+                            _ ->
+                                P.problem "Not in: [YES, NO]"
+                    )
+    in
+    P.succeed AlwaysRun
+        |. P.keyword "always"
+        |. P.spaces
+        |. P.symbol "="
+        |. P.spaces
+        |= P.oneOf
+            [ P.symbol "=" |> P.andThen (\() -> P.problem "double eq!")
+            , bool
+            ]
+
+
+alwaysRunParserTest : Test
+alwaysRunParserTest =
+    let
+        test_ n ( inp, exp ) =
+            test ("parse alwaysRun #" ++ String.fromInt n) <|
+                \() -> P.run alwaysRunParser inp |> Expect.equal exp
+    in
+    describe "alwaysRunParserTest" <|
+        List.indexedMap test_ <|
+            [ ( ""
+              , Err [ { col = 1, problem = P.ExpectingKeyword "always", row = 1 } ]
+              )
+            , ( "always=YES"
+              , Ok (AlwaysRun True)
+              )
+            , ( "always=NO"
+              , Ok (AlwaysRun False)
+              )
+            , ( "always =  YES"
+              , Ok (AlwaysRun True)
+              )
+            , ( "always=NO!"
+              , Err [ { col = 11, problem = P.Problem "Not in: [YES, NO]", row = 1 } ]
+              )
+            , ( "always==NO"
+              , Err [ { col = 9, problem = P.Problem "double eq!", row = 1 } ]
+              )
+            ]
+
+
 parser : Parser SpecialCode
 parser =
     let
@@ -123,14 +233,14 @@ parser =
             case keysAndValues of
                 [ [ "alert", alertMsg ], [ "always", yn ], [ "repeat", nStr ] ] ->
                     Maybe.withDefault (P.problem "One or more invalid values (or keys)") <|
-                        Maybe.map2 (\num bool -> P.succeed (SpecialCode (Repeat num) alertMsg bool))
+                        Maybe.map2 (\num bool -> P.succeed (SpecialCode (Repeat num) (Notice alertMsg) bool))
                             (String.toInt nStr)
                             (case yn of
                                 "YES" ->
-                                    Just True
+                                    Just (AlwaysRun True)
 
                                 "NO" ->
-                                    Just False
+                                    Just (AlwaysRun False)
 
                                 _ ->
                                     Nothing
@@ -164,8 +274,8 @@ specialCodeParser =
                     |> Expect.equal
                         (Ok
                             { repeat = Repeat 3
-                            , notice = "Some limit has been reached"
-                            , alwaysRun = True
+                            , notice = Notice "Some limit has been reached"
+                            , alwaysRun = AlwaysRun True
                             }
                         )
         , test "invalidInput" <|
@@ -185,8 +295,8 @@ specialCodeParser =
                     |> Expect.equal
                         (Ok
                             { repeat = Repeat 4
-                            , notice = "Some limit has been reached"
-                            , alwaysRun = True
+                            , notice = Notice "Some limit has been reached"
+                            , alwaysRun = AlwaysRun True
                             }
                         )
         , test "out of order keys parses" <|
@@ -195,8 +305,8 @@ specialCodeParser =
                     |> Expect.equal
                         (Ok
                             { repeat = Repeat 5
-                            , notice = "Reached bottom"
-                            , alwaysRun = False
+                            , notice = Notice "Reached bottom"
+                            , alwaysRun = AlwaysRun False
                             }
                         )
         , test "rejects bad values" <|
