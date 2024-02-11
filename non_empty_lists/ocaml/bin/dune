@@ -1,0 +1,2 @@
+(executables
+ (names private_type_alias private_type_alias_functor))
