@@ -100,3 +100,74 @@ nth 0 (x : xs) = Just x
 nth n (_ : xs) = nth (n - 1) xs
 
 -------------------------------------------------------------------------------
+
+{- | Problem 4
+(*) Find the number of elements in a list.
+
+>>> len []
+0
+
+>>> len [1..3]
+3
+-}
+len :: (Num n) => [a] -> n
+len [] = 0
+len (_ : xs) = 1 + len xs
+
+{- |
+>>> len' []
+0
+
+>>> len' [1..3]
+3
+-}
+len' :: (Num n) => [a] -> n
+len' = foldl (\acc _ -> acc + 1) 0
+
+{- |
+
+>>> len'' []
+0
+
+>>> len'' [1..3]
+3
+-}
+len'' :: [a] -> Integer
+len'' = sum . map (const 1)
+
+-------------------------------------------------------------------------------
+
+{- | Problem 5
+(*) Reverse a list.
+
+>>> rev []
+[]
+
+>>> rev [1]
+[1]
+
+>>> rev [1,2]
+[2,1]
+-}
+rev :: [a] -> [a]
+rev lst =
+    let
+        aux lst2 acc =
+            case lst2 of
+                [] -> acc
+                (x : xs) -> aux xs (x : acc)
+     in
+        aux lst []
+
+{- |
+
+>>> rev2 []
+[]
+
+>>> rev2 [1..3]
+[3,2,1]
+-}
+rev2 :: (Foldable t) => t a -> [a]
+rev2 = foldl (flip (:)) []
+
+-------------------------------------------------------------------------------
