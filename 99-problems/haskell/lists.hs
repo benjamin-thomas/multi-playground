@@ -1,3 +1,5 @@
+module Lists where
+
 import Prelude hiding (last)
 
 {-
@@ -171,3 +173,82 @@ rev2 :: (Foldable t) => t a -> [a]
 rev2 = foldl (flip (:)) []
 
 -------------------------------------------------------------------------------
+
+{- | Problem 6
+(*) Find out whether a list is a palindrome.
+
+>>> palindrome "bob"
+True
+
+>>> palindrome "chair"
+False
+-}
+palindrome :: (Eq a) => [a] -> Bool
+palindrome [] = error "absurd"
+palindrome lst = rev lst == lst
+
+-------------------------------------------------------------------------------
+
+{- | Problem 7
+(**) Flatten a nested list structure.
+
+>>> flatten [[]]
+[]
+
+>>> flatten [[1]]
+[1]
+
+>>> flatten [[1,2]]
+[1,2]
+
+>>> flatten [[1], [2]]
+[1,2]
+
+>>> flatten [[1], [2,3]]
+[1,2,3]
+
+>>> flatten [[1], [2,3], [4,5,6]]
+[1,2,3,4,5,6]
+
+>>> foldl (++) [] [[1], [2,3], [4,5,6]]
+[1,2,3,4,5,6]
+-}
+flatten :: [[a]] -> [a]
+flatten = reverse . aux []
+  where
+    aux :: [a] -> [[a]] -> [a]
+    aux acc lst =
+        case lst of
+            [[]] -> acc
+            [[x]] -> x : acc
+            [x] : xs -> aux (x : acc) xs
+            ((x : xs) : xss) -> aux (x : acc) (xs : xss)
+
+{- |
+
+Chat GPT!
+>>> flatten' [[]]
+[]
+
+>>> flatten' [[1]]
+[1]
+
+>>> flatten' [[1,2]]
+[1,2]
+
+>>> flatten' [[1], [2]]
+[1,2]
+
+>>> flatten' [[1], [2,3]]
+[1,2,3]
+-}
+flatten' :: [[a]] -> [a]
+flatten' = reverse . aux []
+  where
+    aux :: [a] -> [[a]] -> [a]
+    aux acc lst =
+        case lst of
+            [] -> acc
+            (x : xs) -> aux (foldl (flip (:)) acc x) xs
+
+--- NEXT: do the same, but with a custom type
