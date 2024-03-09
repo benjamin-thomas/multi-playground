@@ -43,7 +43,7 @@ let rec subsets : 'a list -> 'a list list = function
   | [] -> [ [] ]
   | h :: t ->
     let left = subsets t in
-    let right = List.map (fun set -> h :: set) left in
+    let right = List.map (List.cons h) left in
     left @ right
 ;;
 
@@ -60,28 +60,24 @@ let%expect_test _ =
   ; [%expect {| (() (a) (b) (c) (a b) (a c) (b c) (a b c)) |}]
 ;;
 
-let rec without x = function
-  | [] -> []
-  | h :: t -> if h = x then t else h :: without x t
-;;
-
 (*{|
 
 === PERMUTATIONS ===
 
-For a list of 3 items, there are   3*2*1 = 3! =  6 permutations (aka arrangments).
+Question: in how many different ways can you arrange x items?
+
+For a list of 3 items, there are   3*2*1 = 3! =  6 permutations (aka arrangements).
 For a list of 4 items, there are 4*3*2*1 = 4! = 24 permutations.
 
 |}*)
 let rec permutations = function
   | [] -> [ [] ]
-  | xs ->
-      List.concat
-      @@ List.map
-           (fun x -> List.map
-                       (fun xs' -> x :: xs')
-                       (permutations (without x xs)))
-           xs
+  | rest ->
+      List.concat_map
+           (fun h -> List.map
+                       (List.cons h)
+                       (permutations (List.filter (fun h' -> h <> h') rest)))
+           rest
 [@@ocamlformat "disable"]
 
 let%expect_test _ =
