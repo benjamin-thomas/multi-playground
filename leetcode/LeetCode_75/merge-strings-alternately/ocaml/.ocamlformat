@@ -1,0 +1,4 @@
+profile=jane
+
+sequence-style=before # semi-colon first
+parens-tuple-patterns=always
