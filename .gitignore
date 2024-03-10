@@ -1,5 +1,8 @@
 */go-simple/dist/*
 
+# Editor
+*/**/.idea/
+
 # Fsharp
 **/fsharp/**/bin/
 **/fsharp/**/obj/
@@ -21,6 +24,7 @@
 **/.gradle/
 **/java/*.class
 
+# Scala
 **/scala/**/target/
 
 # Elm
@@ -32,5 +36,8 @@
 # TypeScript
 **/node_modules/
 
-# Editor
-*/**/.idea/
+# Clojure
+**/.nrepl-port
+**/.calva/
+**/.clj-kondo/
+**/.lsp/
