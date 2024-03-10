@@ -1,10 +1,10 @@
 (* dune runtest -w *)
 
-let char_list_of_string str = List.init (String.length str) (String.get str)
+let to_chars str = List.init (String.length str) (String.get str)
 
 let merge word1 word2 =
-  let xs = char_list_of_string word1 in
-  let ys = char_list_of_string word2 in
+  let xs = to_chars word1 in
+  let ys = to_chars word2 in
   let rec aux acc = function
     | ([], []) -> acc
     | ([], h2 :: t2) -> aux (h2 :: acc) ([], t2)
@@ -16,6 +16,7 @@ let merge word1 word2 =
   ()
   ; List.iter (Buffer.add_char buf) (List.rev combined)
   ; Buffer.contents buf
+[@@warning "-32"]
 ;;
 
 let merge_imperative word_a word_b =
@@ -30,6 +31,36 @@ let merge_imperative word_a word_b =
     ; if !i < len_b then append word_b.[!i]
     ; incr i
   done
+  ; Buffer.contents buf
+;;
+
+let interleave_all lst =
+  let rec aux acc = function
+    | ([], []) -> List.rev acc
+    | ([], h2 :: t2) -> aux (h2 :: acc) ([], t2)
+    | (h1 :: t1, []) -> aux (h1 :: acc) (t1, [])
+    | (h1 :: t1, h2 :: t2) -> aux (h2 :: h1 :: acc) (t1, t2)
+  in
+  aux [] lst
+;;
+
+let%expect_test _ =
+  let print lst = List.iter (fun c -> Printf.printf "%c" c) lst in
+  ()
+  ; print @@ interleave_all ([ 'A'; 'C' ], [ 'B'; 'D'; 'E'; 'F' ])
+  ; [%expect {| ABCDEF |}]
+  ; ()
+  ; print @@ interleave_all ([ 'A'; 'C'; 'E'; 'F' ], [ 'B'; 'D' ])
+  ; [%expect {| ABCDEF |}]
+;;
+
+(** Same as the original version above, except I've extracted out the notion of
+    interleaving into [interleave_all] *)
+let merge word1 word2 =
+  let interleaved = interleave_all (to_chars word1, to_chars word2) in
+  let buf = Buffer.create 16 in
+  ()
+  ; List.iter (Buffer.add_char buf) interleaved
   ; Buffer.contents buf
 ;;
 
