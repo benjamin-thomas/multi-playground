@@ -10,13 +10,13 @@ def pad(arr, final_len)
 end
 
 def interleaved(word1, word2)
-  largest_len = word1.length > word2.length ? word1.length : word2.length
-  chars1 = pad(word1.chars, largest_len)
-  chars2 = pad(word2.chars, largest_len)
+  largest = [word1.length, word2.length].max
+  chars1 = pad(word1.chars, largest)
+  chars2 = pad(word2.chars, largest)
 
   chars1.zip(chars2)
     .flatten
-    .reject(&:nil?)
+    .compact
     .join
 end
 
