@@ -41,3 +41,10 @@
 **/.calva/
 **/.clj-kondo/
 **/.lsp/
+
+# Zig
+**/zig-cache/
+**/build.zig
+
+# Erlang
+**/solution.beam

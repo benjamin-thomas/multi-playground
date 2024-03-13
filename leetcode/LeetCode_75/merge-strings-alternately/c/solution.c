@@ -25,6 +25,7 @@ char *mergeAlternately(const char *word1, const char *word2) {
     fprintf(stderr, "Memory allocation failed\n");
     exit(1);
   }
+  // TODO: free result!
 
   int i = 0;
   int j = 0;
