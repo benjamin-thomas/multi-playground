@@ -1,5 +1,5 @@
 (*
-   dune exec --no-print-directory ./main.exe < ../../day01.txt
+   dune exec --no-print-directory ./main.exe < ../../_inputs/day01.txt
 *)
 
 module Curr = Aoc.Day01
@@ -11,5 +11,4 @@ let () =
   ()
   ; printf "Part 1: %d\n" @@ Curr.part1 lines
   ; printf "Part 2: %d\n" @@ Curr.part2 lines
-  ; print_newline ()
 ;;
