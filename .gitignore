@@ -23,6 +23,7 @@
 # Java
 **/.gradle/
 **/java/*.class
+**/java/**/target/
 
 # Scala
 **/scala/**/target/

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+javac -d target -cp .:lib/* Day01.java Day01Test.java

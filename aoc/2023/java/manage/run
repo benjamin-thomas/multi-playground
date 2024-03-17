@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+java -cp target Day01

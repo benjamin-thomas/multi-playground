@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+
+# NOTE: hamcrest is a mandatory, internal dependency to junit4 (or so it seems)
+java -cp target:lib/* org.junit.runner.JUnitCore Day01Test
