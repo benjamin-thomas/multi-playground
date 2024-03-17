@@ -59,28 +59,29 @@ class Day01 {
         List<Integer> list = new ArrayList<>();
 
         for (int i = 0; i < str.length(); i++) {
-
+            String frag = str.substring(i);
+            Function<String, Boolean> startsWith = frag::startsWith;
             char c = str.charAt(i);
             if (Character.isDigit(c)) {
                 list.add(Character.getNumericValue(c));
             } else {
-                if (isOne(str, i)) {
+                if (startsWith.apply("one")) {
                     list.add(1);
-                } else if (isTwo(str, i)) {
+                } else if (startsWith.apply("two")) {
                     list.add(2);
-                } else if (isThree(str, i)) {
+                } else if (startsWith.apply("three")) {
                     list.add(3);
-                } else if (isFour(str, i)) {
+                } else if (startsWith.apply("four")) {
                     list.add(4);
-                } else if (isFive(str, i)) {
+                } else if (startsWith.apply("five")) {
                     list.add(5);
-                } else if (isSix(str, i)) {
+                } else if (startsWith.apply("six")) {
                     list.add(6);
-                } else if (isSeven(str, i)) {
+                } else if (startsWith.apply("seven")) {
                     list.add(7);
-                } else if (isEight(str, i)) {
+                } else if (startsWith.apply("eight")) {
                     list.add(8);
-                } else if (isNine(str, i)) {
+                } else if (startsWith.apply("nine")) {
                     list.add(9);
                 }
             }
@@ -88,78 +89,6 @@ class Day01 {
 
         return list;
 
-    }
-
-    private static boolean isOne(String str, int i) {
-        return str.length() - i > 2
-                && str.charAt(i + 0) == 'o'
-                && str.charAt(i + 1) == 'n'
-                && str.charAt(i + 2) == 'e';
-    }
-
-    private static boolean isTwo(String str, int i) {
-        return str.length() - i > 2
-                && str.charAt(i + 0) == 't'
-                && str.charAt(i + 1) == 'w'
-                && str.charAt(i + 2) == 'o';
-    }
-
-    private static boolean isThree(String str, int i) {
-        return str.length() - i > 4
-                && str.charAt(i + 0) == 't'
-                && str.charAt(i + 1) == 'h'
-                && str.charAt(i + 2) == 'r'
-                && str.charAt(i + 3) == 'e'
-                && str.charAt(i + 4) == 'e';
-    }
-
-    private static boolean isFour(String str, int i) {
-        return str.length() - i > 3
-                && str.charAt(i + 0) == 'f'
-                && str.charAt(i + 1) == 'o'
-                && str.charAt(i + 2) == 'u'
-                && str.charAt(i + 3) == 'r';
-    }
-
-    private static boolean isFive(String str, int i) {
-        return str.length() - i > 3
-                && str.charAt(i + 0) == 'f'
-                && str.charAt(i + 1) == 'i'
-                && str.charAt(i + 2) == 'v'
-                && str.charAt(i + 3) == 'e';
-    }
-
-    private static boolean isSix(String str, int i) {
-        return str.length() - i > 2
-                && str.charAt(i + 0) == 's'
-                && str.charAt(i + 1) == 'i'
-                && str.charAt(i + 2) == 'x';
-    }
-
-    private static boolean isSeven(String str, int i) {
-        return str.length() - i > 4
-                && str.charAt(i + 0) == 's'
-                && str.charAt(i + 1) == 'e'
-                && str.charAt(i + 2) == 'v'
-                && str.charAt(i + 3) == 'e'
-                && str.charAt(i + 4) == 'n';
-    }
-
-    private static boolean isEight(String str, int i) {
-        return str.length() - i > 4
-                && str.charAt(i + 0) == 'e'
-                && str.charAt(i + 1) == 'i'
-                && str.charAt(i + 2) == 'g'
-                && str.charAt(i + 3) == 'h'
-                && str.charAt(i + 4) == 't';
-    }
-
-    private static boolean isNine(String str, int i) {
-        return str.length() - i > 3
-                && str.charAt(i + 0) == 'n'
-                && str.charAt(i + 1) == 'i'
-                && str.charAt(i + 2) == 'n'
-                && str.charAt(i + 3) == 'e';
     }
 
     private static int processLines(List<String> lines, Function<String, List<Integer>> filterFn) {
