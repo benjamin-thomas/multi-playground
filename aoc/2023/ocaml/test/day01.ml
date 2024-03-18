@@ -4,7 +4,7 @@ let chars_of_string s = List.init (String.length s) (String.get s)
 
 let%expect_test "filter_nums1" =
   let open Core in
-  let got = Day01.filter_nums1 @@ chars_of_string "1abc2pqr3stu8vwx" in
+  let got = Day01.Part1.filter_nums @@ chars_of_string "1abc2pqr3stu8vwx" in
   ()
   ; print_s [%sexp (got : char list)]
   ; [%expect {| (1 2 3 8) |}]
@@ -12,7 +12,7 @@ let%expect_test "filter_nums1" =
 
 let%expect_test "filter_nums2" =
   let open Core in
-  let got = Day01.filter_nums2 @@ chars_of_string "abcone2threeightxyz" in
+  let got = Day01.Part2.filter_nums @@ chars_of_string "abcone2threeightxyz" in
   ()
   ; print_s [%sexp (got : char list)]
   ; [%expect {| (1 2 3 8) |}]

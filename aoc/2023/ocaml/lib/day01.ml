@@ -1,26 +1,30 @@
 let to_int c = int_of_char c - int_of_char '0'
 let chars_of_string s = List.init (String.length s) (String.get s)
 
-let rec filter_nums1 = function
-  | [] -> []
-  | ('0' .. '9' as h) :: t -> h :: filter_nums1 t
-  | _ :: t -> filter_nums1 t
-;;
+module Part1 = struct
+  let rec filter_nums = function
+    | [] -> []
+    | ('0' .. '9' as h) :: t -> h :: filter_nums t
+    | _ :: t -> filter_nums t
+  ;;
+end
 
-let rec filter_nums2 = function
+module Part2 = struct
+  let rec filter_nums = function
   | [] -> []
-  | ('0' .. '9' as h)  :: t                     ->  h  :: filter_nums2 t
-  | 'o' :: ('n' :: 'e' :: _ as t)               -> '1' :: filter_nums2 t
-  | 't' :: ('w' :: 'o' :: _ as t)               -> '2' :: filter_nums2 t
-  | 't' :: ('h' :: 'r' :: 'e' :: 'e' :: _ as t) -> '3' :: filter_nums2 t
-  | 'f' :: ('o' :: 'u' :: 'r' :: _ as t)        -> '4' :: filter_nums2 t
-  | 'f' :: ('i' :: 'v' :: 'e' :: _ as t)        -> '5' :: filter_nums2 t
-  | 's' :: ('i' :: 'x' :: _ as t)               -> '6' :: filter_nums2 t
-  | 's' :: ('e' :: 'v' :: 'e' :: 'n' :: _ as t) -> '7' :: filter_nums2 t
-  | 'e' :: ('i' :: 'g' :: 'h' :: 't' :: _ as t) -> '8' :: filter_nums2 t
-  | 'n' :: ('i' :: 'n' :: 'e' :: _ as t)        -> '9' :: filter_nums2 t
-  | _ :: t -> filter_nums2 t
-[@@ocamlformat "disable"]
+  | ('0' .. '9'  as h)  :: t                     ->  h  :: filter_nums t
+  |  'o' :: ('n' :: 'e' :: _ as t)               -> '1' :: filter_nums t
+  |  't' :: ('w' :: 'o' :: _ as t)               -> '2' :: filter_nums t
+  |  't' :: ('h' :: 'r' :: 'e' :: 'e' :: _ as t) -> '3' :: filter_nums t
+  |  'f' :: ('o' :: 'u' :: 'r' :: _ as t)        -> '4' :: filter_nums t
+  |  'f' :: ('i' :: 'v' :: 'e' :: _ as t)        -> '5' :: filter_nums t
+  |  's' :: ('i' :: 'x' :: _ as t)               -> '6' :: filter_nums t
+  |  's' :: ('e' :: 'v' :: 'e' :: 'n' :: _ as t) -> '7' :: filter_nums t
+  |  'e' :: ('i' :: 'g' :: 'h' :: 't' :: _ as t) -> '8' :: filter_nums t
+  |  'n' :: ('i' :: 'n' :: 'e' :: _ as t)        -> '9' :: filter_nums t
+  |   _  :: t -> filter_nums t
+  [@@ocamlformat "disable"]
+end
 
 let first_last = function
   | [] -> (0, 0)
@@ -37,5 +41,5 @@ let process_lines filter_fn lines =
   |> List.fold_left (fun acc (first, last) -> acc + (first * 10) + last) 0
 ;;
 
-let part1 = process_lines filter_nums1
-let part2 = process_lines filter_nums2
+let part1 = process_lines Part1.filter_nums
+let part2 = process_lines Part2.filter_nums
