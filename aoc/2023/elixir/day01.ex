@@ -1,10 +1,6 @@
 # echo ./day01.ex | entr -c elixir /_
 
-defmodule NumbersSimple do
-  def filter_map(str) do
-    filter_map(str, [])
-  end
-
+defmodule ExtractNumbersSimple do
   defp filter_map(<<>>, acc), do: Enum.reverse(acc)
 
   defp filter_map(<<n, rest::binary>>, acc) when n in ?0..?9 do
@@ -13,58 +9,56 @@ defmodule NumbersSimple do
 
   defp filter_map(<<_, rest::binary>>, acc) do
     filter_map(rest, acc)
+  end
+
+  def filter_map(str) do
+    filter_map(str, [])
   end
 end
 
-defmodule Numbers do
+defmodule ExtractNumbersComplex do
+  defp filter_map(str, acc) do
+    case str do
+      <<>> ->
+        Enum.reverse(acc)
+
+      <<n, rest::binary>> when n in ?0..?9 ->
+        filter_map(rest, [n - ?0 | acc])
+
+      <<?o, ?n, ?e, rest::binary>> ->
+        filter_map(<<?e, rest::binary>>, [1 | acc])
+
+      <<?t, ?w, ?o, rest::binary>> ->
+        filter_map(<<?o, rest::binary>>, [2 | acc])
+
+      <<?t, ?h, ?r, ?e, ?e, rest::binary>> ->
+        filter_map(<<?e, rest::binary>>, [3 | acc])
+
+      <<?f, ?o, ?u, ?r, rest::binary>> ->
+        filter_map(<<?r, rest::binary>>, [4 | acc])
+
+      <<?f, ?i, ?v, ?e, rest::binary>> ->
+        filter_map(<<?e, rest::binary>>, [5 | acc])
+
+      <<?s, ?i, ?x, rest::binary>> ->
+        filter_map(<<?x, rest::binary>>, [6 | acc])
+
+      <<?s, ?e, ?v, ?e, ?n, rest::binary>> ->
+        filter_map(<<?n, rest::binary>>, [7 | acc])
+
+      <<?e, ?i, ?g, ?h, ?t, rest::binary>> ->
+        filter_map(<<?t, rest::binary>>, [8 | acc])
+
+      <<?n, ?i, ?n, ?e, rest::binary>> ->
+        filter_map(<<?e, rest::binary>>, [9 | acc])
+
+      <<_, rest::binary>> ->
+        filter_map(rest, acc)
+    end
+  end
+
   def filter_map(str) do
     filter_map(str, [])
-  end
-
-  defp filter_map(<<>>, acc), do: Enum.reverse(acc)
-
-  defp filter_map(<<n, rest::binary>>, acc) when n in ?0..?9 do
-    filter_map(rest, [n - ?0 | acc])
-  end
-
-  defp filter_map(<<?o, ?n, ?e, rest::binary>>, acc) do
-    filter_map(<<?n, ?e, rest::binary>>, [1 | acc])
-  end
-
-  defp filter_map(<<?t, ?w, ?o, rest::binary>>, acc) do
-    filter_map(<<?w, ?o, rest::binary>>, [2 | acc])
-  end
-
-  defp filter_map(<<?t, ?h, ?r, ?e, ?e, rest::binary>>, acc) do
-    filter_map(<<?h, ?r, ?e, ?e, rest::binary>>, [3 | acc])
-  end
-
-  defp filter_map(<<?f, ?o, ?u, ?r, rest::binary>>, acc) do
-    filter_map(<<?o, ?u, ?r, rest::binary>>, [4 | acc])
-  end
-
-  defp filter_map(<<?f, ?i, ?v, ?e, rest::binary>>, acc) do
-    filter_map(<<?i, ?v, ?e, rest::binary>>, [5 | acc])
-  end
-
-  defp filter_map(<<?s, ?i, ?x, rest::binary>>, acc) do
-    filter_map(<<?i, ?x, rest::binary>>, [6 | acc])
-  end
-
-  defp filter_map(<<?s, ?e, ?v, ?e, ?n, rest::binary>>, acc) do
-    filter_map(<<?e, ?v, ?e, ?n, rest::binary>>, [7 | acc])
-  end
-
-  defp filter_map(<<?e, ?i, ?g, ?h, ?t, rest::binary>>, acc) do
-    filter_map(<<?i, ?g, ?h, ?t, rest::binary>>, [8 | acc])
-  end
-
-  defp filter_map(<<?n, ?i, ?n, ?e, rest::binary>>, acc) do
-    filter_map(<<?i, ?n, ?e, rest::binary>>, [9 | acc])
-  end
-
-  defp filter_map(<<_, rest::binary>>, acc) do
-    filter_map(rest, acc)
   end
 end
 
@@ -75,12 +69,12 @@ defmodule Day01 do
 
   def extract_digits(str) do
     # Part 1: 55002
-    NumbersSimple.filter_map(str)
+    ExtractNumbersSimple.filter_map(str)
   end
 
   def extract_more_digits(str) do
     # Part 2: 55093
-    Numbers.filter_map(str)
+    ExtractNumbersComplex.filter_map(str)
   end
 
   def keep_outer_or_zeros(lst) do
@@ -117,13 +111,10 @@ defmodule Day01 do
   end
 end
 
-Day01.read_input() |> Day01.part1() |> IO.inspect(label: "Part 1")
-Day01.read_input() |> Day01.part2() |> IO.inspect(label: "Part 2")
-
-ExUnit.start()
+ExUnit.start(autorun: false)
 
 defmodule Day01Test do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   test "extract_digits" do
     assert Day01.extract_digits("1abc2") == [1, 2]
@@ -139,15 +130,17 @@ defmodule Day01Test do
   end
 
   test "extract_more_digits" do
-    assert Numbers.filter_map("1abc23xyz.four.nineight") == [1, 2, 3, 4, 9, 8]
+    assert ExtractNumbersComplex.filter_map("1abc23xyz.four.nineight") == [1, 2, 3, 4, 9, 8]
   end
 end
 
-defmodule NumbersTest do
-  use ExUnit.Case
+defmodule ExtractNumbersComplexTest do
+  use ExUnit.Case, async: true
 
   test "extract_more_digits" do
-    assert Numbers.filter_map("1.abc.oneight--nineightseveninessixfivefourthreetwone0123456789") ==
+    assert ExtractNumbersComplex.filter_map(
+             "1.abc.oneight--nineightseveninessixfivefourthreetwone0123456789"
+           ) ==
              [
                1,
                1,
@@ -175,3 +168,9 @@ defmodule NumbersTest do
              ]
   end
 end
+
+ExUnit.run()
+
+IO.puts("=== Answers ===")
+Day01.read_input() |> Day01.part1() |> IO.inspect(label: "Part 1")
+Day01.read_input() |> Day01.part2() |> IO.inspect(label: "Part 2")
