@@ -91,7 +91,8 @@ sumLines =
 
 part1 : List String -> Int
 part1 lines =
-    filterMap lines
+    lines
+        |> filterMap
         |> sumLines
 
 
@@ -103,8 +104,15 @@ part2 lines =
 
 
 mkPrint : String -> (List String -> Int) -> String -> () -> IO ()
-mkPrint header f content () =
-    Proc.print (header ++ ": " ++ (String.fromInt <| f <| String.lines content))
+mkPrint header computeAnswer content () =
+    let
+        result =
+            content
+                |> String.lines
+                |> computeAnswer
+                |> String.fromInt
+    in
+    Proc.print (header ++ ": " ++ result)
 
 
 program : Process -> IO ()
