@@ -1,0 +1,102 @@
+module Day01 exposing (main, filterNumbers, keepOuter, filterMap, part1)
+
+import Node
+import Bytes exposing (Bytes, Endianness(..))
+import Bytes.Encode as E
+import Bytes.Decode as D exposing (Decoder)
+import Stream exposing (Stream)
+import Node exposing (Program, Environment)
+import FileSystem
+import Init
+import Task
+
+
+{-
+
+echo src/Day01.gren | entr -c gren make /_
+node ./app
+
+echo src/Day01.gren | entr -c bash -c 'gren make ./src/Day01.gren && node ./app gren.json < ../_inputs/day01.txt'
+
+ -}
+
+part1 lst =
+    lst
+    |> filterMap
+    |> Array.map (\{ first, last } -> first + last)
+    |> Array.foldl (+) 0
+
+toInt c = Char.toCode c - Char.toCode '0'
+
+filterMap lst =
+    lst
+    |> Array.filterMap (String.toArray >>  filterNumbers >> keepOuter)
+    |> Array.map (\{ first, last } -> { first =  toInt first, last = toInt last })
+
+filterNumbers : Array Char -> Array Char
+filterNumbers =
+    Array.filter (Char.isDigit)
+
+
+keepOuter lst =
+    case { fst = Array.get 0 lst , snd = Array.get (Array.length lst - 1) lst } of
+         { fst = Nothing, snd = Nothing } -> Nothing
+         { fst =  Just x, snd = Nothing } -> Just { first = x, last = x }
+         { fst =  Just x, snd =  Just y } -> Just { first = x, last = y }
+
+
+readStdin : Model -> Sub Msg
+readStdin model = Stream.listen model.stdin (GotBytes)
+
+main : Program Model Msg
+main =
+    Node.defineProgram
+        { init = init
+        , update = update
+        , subscriptions = readStdin
+        }
+
+
+type alias Model =
+    { stdout : Stream
+    , stdin : Stream
+    }
+
+
+type Msg
+    = GotBytes Bytes
+
+init : Environment -> Init.Task { model : Model, command : Cmd Msg }
+init env =
+    Node.startProgram
+        { model =
+            { stdout = env.stdout
+            , stdin  = env.stdin
+            }
+        , command = Cmd.none
+        }
+
+
+doWork : String -> String
+doWork lines =
+    let
+        a = String.fromInt <| Array.length <| String.lines lines
+        b = String.fromInt <| Array.length (String.lines lines) + 1
+    in
+    "Part 1: " ++ a ++ "\n" ++
+    "Part 2: " ++ b
+
+update : Msg -> Model -> { model : Model, command : Cmd Msg }
+update msg model =
+    case msg of
+        GotBytes bytes ->
+            { model = model
+            , command =
+                let
+                    str : Maybe String
+                    str = D.decode (D.string (Bytes.width bytes)) bytes
+                in
+                case str of
+                    Nothing -> Cmd.none
+                    Just s  -> Stream.sendString model.stdout <| doWork s
+            }

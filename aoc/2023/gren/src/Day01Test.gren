@@ -1,0 +1,58 @@
+module Day01Test exposing (main)
+
+import Test exposing (describe, test, Test)
+import Expect exposing (Expectation)
+import Test.Runner.Node exposing (Program, run)
+
+import Day01
+
+{-
+
+rg --files --type-add 'gren:*.gren' -tgren | entr -c bash -c 'gren make ./src/Day01Test.gren && node ./app'
+
+ -}
+
+part1Suite : Test
+part1Suite =
+    describe "Part 1"
+        [ test "filterNumbers" <| \{} ->
+            Day01.filterNumbers (String.toArray "1abc2def3ghi")
+                |> Expect.equal ['1', '2', '3']
+
+        , describe "keepOuter" <|
+            [ test "empty" <| \{} ->
+                Day01.keepOuter []
+                    |> Expect.equal Nothing
+
+            , test "one item" <| \{} ->
+                Day01.keepOuter [1]
+                    |> Expect.equal (Just { first = 1, last = 1 })
+
+            , test "two items" <| \{} ->
+                Day01.keepOuter [1, 2]
+                    |> Expect.equal (Just { first = 1, last = 2 })
+
+            , test "three items" <| \{} ->
+                Day01.keepOuter [1, 2, 3]
+                    |> Expect.equal (Just { first = 1, last = 3 })
+        ]
+
+        , test "filterMap" <| \{} ->
+            Day01.filterMap [ "1abc2def3ghi", "4jkl5mno6pqr", "7stu8vwx9yz" ]
+                |> Expect.equal [ { first = 1, last = 3 }
+                                , { first = 4, last = 6 }
+                                , { first = 7, last = 9 }
+                                ]
+
+        , test "part1" <| \{} ->
+            Day01.part1 [ "1abc2def3ghi", "4jkl5mno6pqr", "7stu8vwx9yz" ]
+                |> Expect.equal (4 + 10 + 16)
+        ]
+
+main : Program
+main =
+    run <|
+        describe "All tests"
+            [ part1Suite
+            ]
+
