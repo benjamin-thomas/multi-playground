@@ -10,41 +10,42 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 |}
 ;;
 
+open Sexplib.Std
+
+type round =
+  { red : int
+  ; green : int
+  ; blue : int
+  }
+[@@deriving sexp]
+
+type game =
+  { id : int
+  ; rounds : round list
+  }
+[@@deriving sexp]
+
 module GameParser = struct
-  open Sexplib.Std
-
-  type round =
-    { red : int
-    ; green : int
-    ; blue : int
-    }
-  [@@deriving sexp]
-
-  type game =
-    { id : int
-    ; rounds : round list
-    }
-  [@@deriving sexp]
-
   let int_or_zero str = Option.value ~default:0 @@ int_of_string_opt @@ str
 
-  let update_round round = function
-  | [ n_str; "red" ]   -> { round with   red = int_or_zero n_str }
-  | [ n_str; "green" ] -> { round with green = int_or_zero n_str }
-  | [ n_str; "blue" ]  -> { round with  blue = int_or_zero n_str }
-  | _ -> round
-[@@ocamlformat "disable"]
-
   let to_round str =
-    let to_add =
-      str
-      |> String.split_on_char ','
-      |> List.map (fun s -> s |> String.trim |> String.split_on_char ' ')
+    let step round = function
+      | [ n_str; "red" ] -> { round with red = int_or_zero n_str }
+      | [ n_str; "green" ] -> { round with green = int_or_zero n_str }
+      | [ n_str; "blue" ] -> { round with blue = int_or_zero n_str }
+      | _ -> round
     in
-    List.fold_left update_round { red = 0; green = 0; blue = 0 } to_add
+    str
+    |> String.split_on_char ','
+    |> List.map (fun s -> s |> String.trim |> String.split_on_char ' ')
+    |> List.fold_left step { red = 0; green = 0; blue = 0 }
   ;;
 
-  let parse_rounds str = str |> String.split_on_char ';' |> List.map to_round
+  let parse_rounds str =
+    str
+    |> String.split_on_char ';'
+    |> List.map to_round
+    [@@ocamlformat "disable"]
 
   let parse_game_id str =
     match str |> String.split_on_char ' ' with
@@ -59,7 +60,11 @@ module GameParser = struct
     | _ -> None
   ;;
 
-  let parse_games str = str |> String.split_on_char '\n' |> List.filter_map parse_game
+  let parse_games str =
+    str
+    |> String.split_on_char '\n'
+    |> List.filter_map parse_game
+  [@@ocamlformat "disable"]
 
   let%expect_test _ =
     let open Core in
@@ -114,33 +119,17 @@ end
    = possible
 *)
 
-type set = GameParser.round
-type game = GameParser.game
-
-(** The maximum allowed number of cubes for a valid game *)
-type remaining = GameParser.round [@@deriving sexp]
-
-let rec _is_valid_game (r : remaining) (sets : set list) id =
-  match sets with
-  | [] -> r.red >= 0 && r.green >= 0 && r.blue >= 0
-  | x :: xs ->
-    r.red >= 0
-    && r.green >= 0
-    && r.blue >= 0
-    && _is_valid_game
-         { red = r.red - x.red; green = r.green - x.green; blue = r.blue - x.blue }
-         xs
-         id
-;;
-
-let is_valid_game (rule : remaining) (sets : set list) _id =
-  let chk (set : set) =
-    set.red <= rule.red && set.green <= rule.green && set.blue <= rule.blue
+let is_valid_game (rule : round) (sets : round list) _id =
+  let chk (round : round) =
+    round.red <= rule.red && round.green <= rule.green && round.blue <= rule.blue
   in
   match sets with
   | [] -> false
-  | x :: xs -> List.fold_left (fun was_valid set -> was_valid && chk set) (chk x) xs
-;;
+  | x :: xs ->
+      xs |> List.fold_left
+              (fun was_valid set -> was_valid && chk set)
+              (chk x)
+[@@ocamlformat "disable"]
 
 let%test _ = not @@ is_valid_game { red = 0; green = 0; blue = 0 } [] 0
 
@@ -158,7 +147,7 @@ let%test _ =
   @@ is_valid_game { red = 1; green = 0; blue = 0 } [ { red = 2; green = 0; blue = 0 } ] 0
 ;;
 
-let valid_game_indexes (rule : remaining) (games : game list) =
+let valid_game_indexes (rule : round) (games : game list) =
   games
   |> List.filter_map (fun (game : game) ->
     if is_valid_game rule game.rounds game.id then
@@ -167,7 +156,7 @@ let valid_game_indexes (rule : remaining) (games : game list) =
       None)
 ;;
 
-let part1_rule : remaining = { red = 12; green = 13; blue = 14 }
+let part1_rule : round = { red = 12; green = 13; blue = 14 }
 
 module TestGames = struct
   let game1 : game =
@@ -250,20 +239,12 @@ module TestGames = struct
   ;;
 end
 
-(*
-   Parse a string such as:
-   6 blue, 6 red, 2 green
-
-   Into a set
-
-   I may have;
-*)
 let parse_item s =
   try s |> String.split_on_char ' ' |> List.hd |> int_of_string with
   | _ -> 0
 ;;
 
-let parse_set s : GameParser.round option =
+let parse_set s : round option =
   let rgb =
     s
     |> String.split_on_char ','
@@ -279,26 +260,24 @@ let parse_set s : GameParser.round option =
 
 (* === PART 2 === *)
 
-let max_color (rounds : GameParser.round list) =
+let max_color (rounds : round list) =
   List.fold_left
-    (fun (acc : GameParser.round) (round : GameParser.round) ->
+    (fun (acc : round) (round : round) ->
       let red = max acc.red round.red in
       let green = max acc.green round.green in
       let blue = max acc.blue round.blue in
-      ({ red; green; blue } : GameParser.round))
-    ({ red = 0; green = 0; blue = 0 } : GameParser.round)
+      ({ red; green; blue } : round))
+    ({ red = 0; green = 0; blue = 0 } : round)
     rounds
 ;;
 
-let power (cubes : set list) =
+let power (cubes : round list) =
   let m = cubes |> max_color in
   m.red * m.green * m.blue
 ;;
 
-let powers (games : GameParser.game list) =
-  games
-  |> List.map (fun (game : GameParser.game) -> game.rounds |> power)
-  |> List.fold_left ( + ) 0
+let powers (games : game list) =
+  games |> List.map (fun (game : game) -> game.rounds |> power) |> List.fold_left ( + ) 0
 ;;
 
 let games_input () =
@@ -315,7 +294,7 @@ let%expect_test _ =
   let game = GameParser.parse_game input |> Option.value_exn in
   let games = GameParser.parse_games example in
   ()
-  ; print_s [%sexp (game : GameParser.game)]
+  ; print_s [%sexp (game : game)]
   ; [%expect
       {|
     ((id 1)
@@ -323,7 +302,7 @@ let%expect_test _ =
       (((red 4) (green 0) (blue 3)) ((red 1) (green 2) (blue 6))
        ((red 0) (green 2) (blue 0))))) |}]
   ; ()
-  ; print_s [%sexp (max_color game.rounds : GameParser.round)]
+  ; print_s [%sexp (max_color game.rounds : round)]
   ; [%expect {|
     ((red 4) (green 2) (blue 6)) |}]
   ; ()
