@@ -1,0 +1,1 @@
+val verify : string -> bool
