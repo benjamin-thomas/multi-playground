@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e
+
+PRG=$1
+
+# `bear` is required by clang-tidy
+# `declaration-after-statement` enforces variable declarations upfront (encourages being tidy and focused!)
+echo "==> Compiling: $PRG"
+
+# -Werror
+bear -- gcc -std=c2x -o /tmp/tmp -Wall -Wextra -Wdeclaration-after-statement -Wpedantic -g "$PRG" -lraylib
+# bear -- clang -std=c2x -o /tmp/tmp -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-gnu-empty-initializer -g ./main.c -lraylib
+
+# echo "==> Running clang-tidy..."
+# clang-tidy "$PRG"
+
+echo "==> Running cppcheck..."
+cppcheck --language=c --enable=warning,style --template=gcc "$PRG"
+# cppcheck $PRG
+
+echo "OK"
