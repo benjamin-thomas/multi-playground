@@ -18,12 +18,9 @@ let count_bytes path =
 
 let count_bytes path =
   let rec aux n ic =
-    try
-      ()
-      ; input_char ic |> ignore
-      ; aux (n + 1) ic
-    with
-    | End_of_file -> n
+    match In_channel.input_char ic with
+    | None -> n
+    | Some _ -> aux (n + 1) ic
   in
   In_channel.with_open_bin path (aux 0)
 ;;
