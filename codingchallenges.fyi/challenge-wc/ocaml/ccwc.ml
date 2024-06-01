@@ -14,10 +14,12 @@ module Switch = struct
   type t =
     | Count_bytes
     | Count_lines
+    | Count_words
 
   let of_string = function
     | "-c" -> Some Count_bytes
     | "-l" -> Some Count_lines
+    | "-w" -> Some Count_words
     | _ -> None
   ;;
 end
@@ -29,6 +31,9 @@ let run filepath = function
   | Switch.Count_lines ->
     let lines_count = Lib.count_lines filepath in
     Printf.printf "%d %s\n" lines_count filepath
+  | Switch.Count_words ->
+    let words_count = Lib.count_words filepath in
+    Printf.printf "%d %s\n" words_count filepath
 ;;
 
 let () = print_newline ()
