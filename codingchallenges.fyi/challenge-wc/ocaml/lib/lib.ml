@@ -1,6 +1,4 @@
-[@@@warning "-32"]
-
-let count_bytes path =
+let[@warning "-32"] count_bytes path =
   let count = ref 0 in
   In_channel.with_open_bin path
   @@ fun ic ->
@@ -42,7 +40,7 @@ let is_white_space = function
   | _ -> false
 ;;
 
-let count_line_words line =
+let[@warning "-32"] count_line_words line =
   let len = String.length line in
   let word_count = ref 0 in
   let in_word = ref false in
@@ -135,6 +133,27 @@ let count_words path =
       aux (n + words) ic
     with
     | End_of_file -> n
+  in
+  In_channel.with_open_bin path (aux 0)
+;;
+
+(* RUNES *)
+
+let count_line_runes line =
+  let add acc _ = function
+    | `Uchar _ -> acc + 1
+    | `Malformed _bs -> failwith "Bad encoding (probably)"
+  in
+  Uutf.String.fold_utf_8 add 1 line
+;;
+
+let count_multi_bytes_chars path =
+  let rec aux n ic =
+    match In_channel.input_line ic with
+    | None -> n
+    | Some line ->
+      let count = count_line_runes line in
+      aux (n + count) ic
   in
   In_channel.with_open_bin path (aux 0)
 ;;

@@ -15,11 +15,13 @@ module Switch = struct
     | Count_bytes
     | Count_lines
     | Count_words
+    | Count_multi_bytes_chars
 
   let of_string = function
     | "-c" -> Some Count_bytes
     | "-l" -> Some Count_lines
     | "-w" -> Some Count_words
+    | "-m" -> Some Count_multi_bytes_chars
     | _ -> None
   ;;
 end
@@ -34,6 +36,9 @@ let run filepath = function
   | Switch.Count_words ->
     let words_count = Lib.count_words filepath in
     Printf.printf "%d %s\n" words_count filepath
+  | Switch.Count_multi_bytes_chars ->
+    let chars_count = Lib.count_multi_bytes_chars filepath in
+    Printf.printf "%d %s\n" chars_count filepath
 ;;
 
 let () = print_newline ()
