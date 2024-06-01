@@ -11,18 +11,24 @@ let usage =
 ;;
 
 module Switch = struct
-  type t = Count_bytes
+  type t =
+    | Count_bytes
+    | Count_lines
 
   let of_string = function
     | "-c" -> Some Count_bytes
+    | "-l" -> Some Count_lines
     | _ -> None
   ;;
 end
 
 let run filepath = function
   | Switch.Count_bytes ->
-    let bytes = Lib.count_bytes filepath in
-    Printf.printf "%d %s\n" bytes filepath
+    let bytes_count = Lib.count_bytes filepath in
+    Printf.printf "%d %s\n" bytes_count filepath
+  | Switch.Count_lines ->
+    let lines_count = Lib.count_lines filepath in
+    Printf.printf "%d %s\n" lines_count filepath
 ;;
 
 let () = print_newline ()

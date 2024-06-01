@@ -27,3 +27,15 @@ let count_bytes path =
   in
   In_channel.with_open_bin path (aux 0)
 ;;
+
+let count_lines path =
+  let rec aux n ic =
+    try
+      ()
+      ; input_line ic |> ignore
+      ; aux (n + 1) ic
+    with
+    | End_of_file -> n
+  in
+  In_channel.with_open_bin path (aux 0)
+;;
