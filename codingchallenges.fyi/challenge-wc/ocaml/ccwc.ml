@@ -44,25 +44,26 @@ let count_defaults filepath =
 ;;
 
 let debug filepath =
-  (* WANT:
-     lines=7145      words=58164     bytes=342190    runes=339292    file=../test.txt
-  *)
   let (lines_count, words_count, bytes_count, runes_count) =
     ( In_channel.with_open_bin filepath Lib.Lines.count
     , In_channel.with_open_bin filepath Lib.Words.count
     , In_channel.with_open_bin filepath Lib.Bytes.count
     , In_channel.with_open_bin filepath Lib.Runes.count )
   in
-  ()
-  ; print_endline
-      "WANT: lines=7145\twords=58164\tbytes=342190\trunes=339292    file=../test.txt"
-  ; Printf.printf
-      " GOT: lines=%d\twords=%d\tbytes=%d\trunes=%d\tfile=%s\n"
+  let want = "lines=7145\twords=58164\tbytes=342190\trunes=339292\tfile=../test.txt" in
+  let got =
+    Printf.sprintf
+      "lines=%d\twords=%d\tbytes=%d\trunes=%d\tfile=%s"
       lines_count
       words_count
       bytes_count
       runes_count
       filepath
+  in
+  ()
+  ; assert (want = got)
+  ; Printf.printf "WANT: %s\n" want
+  ; Printf.printf " GOT: %s\n" got
 ;;
 
 let count_defaults_stdin () =
