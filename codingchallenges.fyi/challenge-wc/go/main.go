@@ -45,9 +45,33 @@ func doCountLines(r *bufio.Reader) int {
 	return n
 }
 
+func doCountWords(r *bufio.Reader) int {
+	n := 0
+	inWord := false
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			break
+		}
+		isWhiteSpace := b == ' ' || b == '\r' || b == '\n' || b == '\t'
+		if inWord {
+			if isWhiteSpace {
+				inWord = false
+			}
+		} else {
+			if !isWhiteSpace {
+				inWord = true
+				n++
+			}
+		}
+	}
+	return n
+}
+
 func main() {
 	countBytes := flag.Bool("c", false, "count bytes")
 	countLines := flag.Bool("l", false, "count lines")
+	countWords := flag.Bool("w", false, "count words")
 	flag.Parse()
 
 	filepaths := flag.Args()
@@ -68,6 +92,9 @@ func main() {
 		} else if *countLines {
 			gotLinesCount := doCountLines(reader)
 			fmt.Printf("%d %s\n", gotLinesCount, baseName)
+		} else if *countWords {
+			gotWordsCount := doCountWords(reader)
+			fmt.Printf("%d %s\n", gotWordsCount, baseName)
 		}
 
 	}
