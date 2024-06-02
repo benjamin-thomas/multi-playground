@@ -146,7 +146,7 @@ let run is_piped_into =
     | [| _; "-m" |] -> count_runes None
     | [| _; "-debug" |] -> debug None
     | [| _ |] -> count_defaults None
-    | _ -> failwith "todo other"
+    | _ -> prerr_endline usage
   in
   if not is_piped_into then
     when_normal ()
