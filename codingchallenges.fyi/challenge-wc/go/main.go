@@ -87,6 +87,11 @@ func mustRewind(file *os.File) {
 	}
 }
 
+func isPipedInto() bool {
+	fileInfo, _ := os.Stdin.Stat()
+	return fileInfo.Mode()&os.ModeCharDevice == 0
+}
+
 func main() {
 	countBytes := flag.Bool("c", false, "count bytes")
 	countLines := flag.Bool("l", false, "count lines")
@@ -95,43 +100,85 @@ func main() {
 	countDefaults := !(*countBytes || *countLines || *countWords || *countRunes)
 	flag.Parse()
 
-	filepaths := flag.Args()
-
-	for _, filepath := range filepaths {
-		baseName := path.Base(filepath)
-		file, err := os.Open(filepath)
+	if isPipedInto() {
+		tmpFile, err := os.CreateTemp("", "go-wc-*")
 		if err != nil {
-			fmt.Printf("%s: %s\n", baseName, err)
-			continue
+			panic(err)
 		}
-		defer file.Close()
+		defer os.Remove(tmpFile.Name())
 
-		reader := bufio.NewReader(file)
+		_, err = tmpFile.ReadFrom(os.Stdin)
+		if err != nil {
+			panic(err)
+		}
+
+		mustRewind(tmpFile)
+		reader := bufio.NewReader(tmpFile)
 		if *countBytes {
 			gotBytesCount := doCountBytes(reader)
-			fmt.Printf("%d %s\n", gotBytesCount, baseName)
+			fmt.Printf("%d\n", gotBytesCount)
 		} else if *countLines {
 			gotLinesCount := doCountLines(reader)
-			fmt.Printf("%d %s\n", gotLinesCount, baseName)
+			fmt.Printf("%d\n", gotLinesCount)
 		} else if *countWords {
 			gotWordsCount := doCountWords(reader)
-			fmt.Printf("%d %s\n", gotWordsCount, baseName)
+			fmt.Printf("%d\n", gotWordsCount)
 		} else if *countRunes {
 			gotRunesCount := doCountRunes(reader)
-			fmt.Printf("%d %s\n", gotRunesCount, baseName)
+			fmt.Printf("%d\n", gotRunesCount)
 		} else if countDefaults {
 			gotBytesCount := doCountBytes(reader)
-			mustRewind(file)
+			mustRewind(tmpFile)
 
 			gotLinesCount := doCountLines(reader)
-			mustRewind(file)
+			mustRewind(tmpFile)
 
 			gotWordsCount := doCountWords(reader)
-			mustRewind(file)
+			mustRewind(tmpFile)
 
-			fmt.Printf("%6d %6d %6d  %s\n", gotLinesCount, gotWordsCount, gotBytesCount, baseName)
+			fmt.Printf("%6d %6d %6d\n", gotLinesCount, gotWordsCount, gotBytesCount)
 		}
+	} else {
 
+		filepaths := flag.Args()
+		fmt.Printf("isPiped: %t, filepaths: %v\n", isPipedInto(), filepaths)
+
+		for _, filepath := range filepaths {
+			baseName := path.Base(filepath)
+			file, err := os.Open(filepath)
+			if err != nil {
+				fmt.Printf("%s: %s\n", baseName, err)
+				continue
+			}
+			defer file.Close()
+
+			reader := bufio.NewReader(file)
+			if *countBytes {
+				gotBytesCount := doCountBytes(reader)
+				fmt.Printf("%d %s\n", gotBytesCount, baseName)
+			} else if *countLines {
+				gotLinesCount := doCountLines(reader)
+				fmt.Printf("%d %s\n", gotLinesCount, baseName)
+			} else if *countWords {
+				gotWordsCount := doCountWords(reader)
+				fmt.Printf("%d %s\n", gotWordsCount, baseName)
+			} else if *countRunes {
+				gotRunesCount := doCountRunes(reader)
+				fmt.Printf("%d %s\n", gotRunesCount, baseName)
+			} else if countDefaults {
+				gotBytesCount := doCountBytes(reader)
+				mustRewind(file)
+
+				gotLinesCount := doCountLines(reader)
+				mustRewind(file)
+
+				gotWordsCount := doCountWords(reader)
+				mustRewind(file)
+
+				fmt.Printf("%6d %6d %6d  %s\n", gotLinesCount, gotWordsCount, gotBytesCount, baseName)
+			}
+
+		}
 	}
 
 }
