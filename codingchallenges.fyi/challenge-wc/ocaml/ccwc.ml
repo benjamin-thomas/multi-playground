@@ -2,6 +2,8 @@
 
 (*
    dune exec ./ccwc.exe -w -- -c ../test.txt
+   dune exec ./ccwc.exe -w --display=quiet --no-print-directory -- -debug ../test.txt
+
    rg --files | entr -c bash -c 'dune build && _build/default/ccwc.exe -c ../test.txt'
    rg --files | entr -c bash -c 'dune build && cat ../test.txt | _build/default/ccwc.exe -c'
 *)
@@ -13,8 +15,6 @@ let usage =
   |}
   |> Dedent.string
 ;;
-
-let () = print_newline ()
 
 let count_bytes filepath ic =
   let bytes_count = Lib.Bytes.count ic in
@@ -45,6 +45,22 @@ let count_defaults filepath =
   Printf.printf "%d %d %d %s\n" lines_count words_count bytes_count filepath
 ;;
 
+let debug filepath =
+  let (lines_count, words_count, bytes_count, runes_count) =
+    ( In_channel.with_open_bin filepath Lib.Lines.count
+    , In_channel.with_open_bin filepath Lib.Words.count
+    , In_channel.with_open_bin filepath Lib.Bytes.count
+    , In_channel.with_open_bin filepath Lib.Runes.count )
+  in
+  Printf.printf
+    "lines=%d\twords=%d\tbytes=%d\trunes=%d\tfile=%s\n"
+    lines_count
+    words_count
+    bytes_count
+    runes_count
+    filepath
+;;
+
 let count_defaults_stdin () =
   (* Wrong approach
      Maybe I should handle one line at a time (with a Seq.t?)
@@ -60,33 +76,28 @@ let count_defaults_stdin () =
 ;;
 
 let run is_piped_into =
-  if not is_piped_into then (
+  let when_normal () =
     match Sys.argv with
     | [| _; "-c"; filepath |] -> In_channel.with_open_bin filepath (count_bytes filepath)
     | [| _; "-l"; filepath |] -> In_channel.with_open_bin filepath (count_lines filepath)
     | [| _; "-w"; filepath |] -> In_channel.with_open_bin filepath (count_words filepath)
     | [| _; "-m"; filepath |] -> In_channel.with_open_bin filepath (count_runes filepath)
+    | [| _; "-debug"; filepath |] -> debug filepath
     | [| _; filepath |] -> count_defaults filepath
     | _ -> prerr_endline usage
-  ) else (
+  in
+  let when_piped_into () =
     match Sys.argv with
     | [| _; "-c" |] -> count_bytes "" In_channel.stdin
     | [| _; "-l" |] -> count_lines "" In_channel.stdin
     | [| _; "-w" |] -> count_words "" In_channel.stdin
     | [| _ |] -> count_defaults_stdin ()
     | _ -> failwith "todo other"
-  )
+  in
+  if not is_piped_into then
+    when_normal ()
+  else
+    when_piped_into ()
 ;;
 
-let is_piped_into = not @@ Unix.isatty Unix.stdin
-
-let () =
-  print_newline ()
-  ; Printf.printf
-      "pid=%d, piped_into=%b args=[%s]\n"
-      (Unix.getpid ())
-      is_piped_into
-      (Array.to_list Sys.argv |> List.tl |> String.concat "|")
-;;
-
-let () = run is_piped_into
+let () = run (not @@ Unix.isatty Unix.stdin)
