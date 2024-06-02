@@ -1,25 +1,5 @@
 module Bytes = struct
-  let count_line_chars line = String.fold_left (fun acc _ -> acc + 1) 1 line
-
-  let count ic =
-    let rec aux n =
-      match In_channel.input_line ic with
-      | None -> n
-      | Some line -> aux (n + count_line_chars line)
-    in
-    aux 0
-  ;;
-end
-
-module Lines = struct
-  let count ic =
-    let rec aux n =
-      match In_channel.input_line ic with
-      | None -> n
-      | Some _ -> aux (n + 1)
-    in
-    aux 0
-  ;;
+  let count_line line = String.fold_left (fun acc _ -> acc + 1) 1 line
 end
 
 module Words = struct
@@ -28,7 +8,7 @@ module Words = struct
     | _ -> false
   ;;
 
-  let count_line_words line =
+  let count_line line =
     let update_count (count, in_word) ch =
       if is_white_space ch then
         (count, false)
@@ -39,34 +19,14 @@ module Words = struct
     in
     fst (String.fold_left update_count (0, false) line)
   ;;
-
-  let count ic =
-    let rec aux n =
-      match In_channel.input_line ic with
-      | None -> n
-      | Some line -> aux (n + count_line_words line)
-    in
-    aux 0
-  ;;
 end
 
 module Runes = struct
-  let count_line_runes line =
+  let count_line line =
     let add acc _ = function
       | `Uchar _ -> acc + 1
       | `Malformed _bs -> failwith "Bad encoding (probably)"
     in
     Uutf.String.fold_utf_8 add 1 line
-  ;;
-
-  let count ic =
-    let rec aux n =
-      match In_channel.input_line ic with
-      | None -> n
-      | Some line ->
-        let count = count_line_runes line in
-        aux (n + count)
-    in
-    aux 0
   ;;
 end

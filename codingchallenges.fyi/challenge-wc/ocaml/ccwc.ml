@@ -16,7 +16,7 @@ let usage =
 
 let count_bytes filepath =
   let aux ic =
-    let update_counter acc line = acc + Lib.Bytes.count_line_chars line in
+    let update_counter acc line = acc + Lib.Bytes.count_line line in
     In_channel.fold_lines update_counter 0 ic
   in
   match filepath with
@@ -40,7 +40,7 @@ let count_lines filepath =
 
 let count_words filepath =
   let aux ic =
-    let update_counter acc line = acc + Lib.Words.count_line_words line in
+    let update_counter acc line = acc + Lib.Words.count_line line in
     In_channel.fold_lines update_counter 0 ic
   in
   match filepath with
@@ -52,7 +52,7 @@ let count_words filepath =
 
 let count_runes filepath =
   let aux ic =
-    let update_counter acc line = acc + Lib.Runes.count_line_runes line in
+    let update_counter acc line = acc + Lib.Runes.count_line line in
     In_channel.fold_lines update_counter 0 ic
   in
   match filepath with
@@ -66,9 +66,9 @@ let debug filepath =
   let aux ic =
     let update_counters (lines_count, words_count, bytes_count, runes_count) line =
       ( lines_count + 1
-      , words_count + Lib.Words.count_line_words line
-      , bytes_count + Lib.Bytes.count_line_chars line
-      , runes_count + Lib.Runes.count_line_runes line )
+      , words_count + Lib.Words.count_line line
+      , bytes_count + Lib.Bytes.count_line line
+      , runes_count + Lib.Runes.count_line line )
     in
     In_channel.fold_lines update_counters (0, 0, 0, 0) ic
   in
@@ -111,8 +111,8 @@ let count_defaults filepath =
   let aux ic =
     let update_counters (lines_count, words_count, bytes_count) line =
       ( lines_count + 1
-      , words_count + Lib.Words.count_line_words line
-      , bytes_count + Lib.Bytes.count_line_chars line )
+      , words_count + Lib.Words.count_line line
+      , bytes_count + Lib.Bytes.count_line line )
     in
     In_channel.fold_lines update_counters (0, 0, 0) ic
   in
