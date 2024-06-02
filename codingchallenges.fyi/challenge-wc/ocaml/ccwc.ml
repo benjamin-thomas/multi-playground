@@ -44,11 +44,16 @@ let count_defaults filepath =
 ;;
 
 let debug filepath =
+  In_channel.with_open_bin filepath
+  @@ fun ic ->
+  let update_counters (lines_count, words_count, bytes_count, runes_count) line =
+    ( lines_count + 1
+    , words_count + Lib.Words.count_line_words line
+    , bytes_count + Lib.Bytes.count_line_chars line
+    , runes_count + Lib.Runes.count_line_runes line )
+  in
   let (lines_count, words_count, bytes_count, runes_count) =
-    ( In_channel.with_open_bin filepath Lib.Lines.count
-    , In_channel.with_open_bin filepath Lib.Words.count
-    , In_channel.with_open_bin filepath Lib.Bytes.count
-    , In_channel.with_open_bin filepath Lib.Runes.count )
+    In_channel.fold_lines update_counters (0, 0, 0, 0) ic
   in
   let want = "lines=7145\twords=58164\tbytes=342190\trunes=339292\tfile=../test.txt" in
   let got =
