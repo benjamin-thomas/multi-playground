@@ -9,7 +9,7 @@
 let usage =
   {|
   Usage: ccwc [OPTION] FILE
-  ccwc is a small command line tool that will count the words in a file.
+  ccwc replicates the wc command available on *nix systems.
   |}
   |> Dedent.string
 ;;
