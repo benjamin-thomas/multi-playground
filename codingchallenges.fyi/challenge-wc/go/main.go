@@ -68,10 +68,23 @@ func doCountWords(r *bufio.Reader) int {
 	return n
 }
 
+func doCountRunes(r *bufio.Reader) int {
+	n := 0
+	for {
+		_, _, err := r.ReadRune()
+		if err != nil {
+			break
+		}
+		n++
+	}
+	return n
+}
+
 func main() {
 	countBytes := flag.Bool("c", false, "count bytes")
 	countLines := flag.Bool("l", false, "count lines")
 	countWords := flag.Bool("w", false, "count words")
+	countRunes := flag.Bool("m", false, "count runes")
 	flag.Parse()
 
 	filepaths := flag.Args()
@@ -95,6 +108,9 @@ func main() {
 		} else if *countWords {
 			gotWordsCount := doCountWords(reader)
 			fmt.Printf("%d %s\n", gotWordsCount, baseName)
+		} else if *countRunes {
+			gotRunesCount := doCountRunes(reader)
+			fmt.Printf("%d %s\n", gotRunesCount, baseName)
 		}
 
 	}
