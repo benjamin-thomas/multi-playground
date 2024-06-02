@@ -33,18 +33,22 @@ func doCountBytes(r *bufio.Reader) int {
 	return n
 }
 
+func doCountLines(r *bufio.Reader) int {
+	n := 0
+	for {
+		_, err := r.ReadString('\n')
+		if err != nil {
+			break
+		}
+		n++
+	}
+	return n
+}
+
 func main() {
 	countBytes := flag.Bool("c", false, "count bytes")
 	countLines := flag.Bool("l", false, "count lines")
 	flag.Parse()
-
-	if *countBytes {
-		println("Counting bytes")
-	} else if *countLines {
-		println("Counting lines")
-	} else {
-		println("other")
-	}
 
 	filepaths := flag.Args()
 
@@ -58,8 +62,14 @@ func main() {
 		defer file.Close()
 
 		reader := bufio.NewReader(file)
-		gotBytesCount := doCountBytes(reader)
-		fmt.Printf("%d %s\n", gotBytesCount, baseName)
+		if *countBytes {
+			gotBytesCount := doCountBytes(reader)
+			fmt.Printf("%d %s\n", gotBytesCount, baseName)
+		} else if *countLines {
+			gotLinesCount := doCountLines(reader)
+			fmt.Printf("%d %s\n", gotLinesCount, baseName)
+		}
+
 	}
 
 }
