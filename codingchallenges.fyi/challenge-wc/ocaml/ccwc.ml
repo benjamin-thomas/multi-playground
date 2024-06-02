@@ -61,7 +61,7 @@ let debug filepath =
       filepath
   in
   ()
-  ; assert (want = got)
+  ; Printf.printf "PASS: %b\n" (want = got)
   ; Printf.printf "WANT: %s\n" want
   ; Printf.printf " GOT: %s\n" got
 ;;

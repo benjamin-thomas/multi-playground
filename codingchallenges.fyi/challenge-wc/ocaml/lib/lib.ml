@@ -1,9 +1,11 @@
 module Bytes = struct
+  let count_line_chars line = String.fold_left (fun acc _ -> acc + 1) 1 line
+
   let count ic =
     let rec aux n =
-      match In_channel.input_char ic with
+      match In_channel.input_line ic with
       | None -> n
-      | Some _ -> aux (n + 1)
+      | Some line -> aux (n + count_line_chars line)
     in
     aux 0
   ;;
