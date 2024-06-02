@@ -32,20 +32,13 @@ let count_runes filepath ic =
   Printf.printf "%d %s\n" chars_count filepath
 ;;
 
-let count_all filepath =
-  let (bytes_count, lines_count, words_count, chars_count) =
-    ( In_channel.with_open_bin filepath Lib.Bytes.count
-    , In_channel.with_open_bin filepath Lib.Lines.count
+let count_defaults filepath =
+  let (lines_count, words_count, bytes_count) =
+    ( In_channel.with_open_bin filepath Lib.Lines.count
     , In_channel.with_open_bin filepath Lib.Words.count
-    , In_channel.with_open_bin filepath Lib.Runes.count )
+    , In_channel.with_open_bin filepath Lib.Bytes.count )
   in
-  Printf.printf
-    "%d %d %d %d %s\n"
-    bytes_count
-    lines_count
-    words_count
-    chars_count
-    filepath
+  Printf.printf "%d %d %d %s\n" lines_count words_count bytes_count filepath
 ;;
 
 let run () =
@@ -54,7 +47,7 @@ let run () =
   | [| _; "-l"; filepath |] -> In_channel.with_open_bin filepath (count_lines filepath)
   | [| _; "-w"; filepath |] -> In_channel.with_open_bin filepath (count_words filepath)
   | [| _; "-m"; filepath |] -> In_channel.with_open_bin filepath (count_runes filepath)
-  | [| _; filepath |] -> count_all filepath
+  | [| _; filepath |] -> count_defaults filepath
   | _ -> prerr_endline usage
 ;;
 
