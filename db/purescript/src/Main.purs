@@ -152,15 +152,11 @@ program2 pool = do
     Right john /\ Right mary -> liftEffect $ log $ "[Program2] john and mary are => " <> show john <> " and " <> show mary
     _ -> liftEffect $ log $ "[Program2] an error occurred"
 
--- Helper function to lift Aff actions into ExceptT
-liftAff :: forall e a. Aff (Either e a) -> ExceptT e Aff a
-liftAff action = ExceptT action
-
 program3 :: Pool -> Aff (Maybe String)
 program3 pool = do
   result <- runExceptT $ do
-    john <- liftAff $ YP.withClient pool $ safeQueryOne read' findCustomerByName [ toSql "John" ]
-    mary <- liftAff $ YP.withClient pool $ safeQueryOne read' (Query "SELECT id, namez FROM customers WHERE name = $1 LIMIT 1" :: Query CustomerSimple) [ toSql "Mary" ]
+    john <- ExceptT $ YP.withClient pool $ safeQueryOne read' findCustomerByName [ toSql "John" ]
+    mary <- ExceptT $ YP.withClient pool $ safeQueryOne read' (Query "SELECT id, namez FROM customers WHERE name = $1 LIMIT 1" :: Query CustomerSimple) [ toSql "Mary" ]
     liftEffect $ log $ "[Program3] john and mary are => " <> show john <> " and " <> show mary
 
   case result of
