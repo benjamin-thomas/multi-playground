@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# LIB="servant-demo"
+# TEST="servant-demo-test"
+
+# :cmd return $ unlines [":!clear", ":reload", ":main --format=progress --pretty --fail-fast"]
+# ghcid --lint --target=$LIB --run=":! ghcid --clear --target=$TEST -T ':main --format=progress --pretty --fail-fast'"
+# ghcid --target=$TEST --setup=":load test/Main.hs  src/MyLib.hs" -T ':main --format=progress --pretty --fail-fast' --warnings
+
+# requires cabal >= 3.12
+HSPEC_FORMAT=progress HSPEC_FAIL_FAST=yes ghcid -c "cabal repl --enable-multi-repl test:servant-demo-test lib:servant-demo" -T Main.main --warnings

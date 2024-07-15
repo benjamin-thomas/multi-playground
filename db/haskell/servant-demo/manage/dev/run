@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# LIB="servant-demo"
+# EXE="servant-demo-exe"
+
+# PORT=4000 ghcid -c 'cabal repl exe:servant-demo-exe' -T main --warnings
+# :cmd return $ unlines [":!clear", ":reload", ":main --format=progress --pretty --fail-fast"]
+# ghcid --lint --target=$LIB --run=":! ghcid --clear --target=$EXE -T :main"
+
+# echo /tmp/can_run_exe | entr -cr cabal run
+
+# This enables tracking changes in app + src
+# exec ghcid --setup=":load ./app/Main.hs" -T main --warnings
+# ghcid --target=$EXE --setup=":load app/Main.hs  src/MyLib.hs" -T ':main' --warnings
+
+# requires cabal >= 3.12
+ghcid -c "cabal repl --enable-multi-repl exe:servant-demo-exe lib:servant-demo" -T Main.main --warnings
