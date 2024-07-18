@@ -1,8 +1,17 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module MyLib (someFunc, someValue, someOtherValue, startApp, app, User (..), encodeUser) where
+module MyLib (
+    someFunc,
+    someValue,
+    someOtherValue,
+    startApp,
+    app,
+    User (..),
+    encodeUser,
+) where
 
 import Data.Aeson (encode)
 import Data.Aeson.TH (defaultOptions, deriveJSON)
@@ -35,8 +44,8 @@ someFunc = putStrLn "someFunc3"
 
 data User = User
     { id :: Int
-    , userFirstName :: String
-    , userLastName :: String
+    , firstName :: String
+    , lastName :: String
     }
     deriving (Eq, Show)
 
@@ -46,9 +55,9 @@ $(deriveJSON defaultOptions ''User)
 encodeUser user = encode user
 
 data ProgrammingLanguage = ProgrammingLanguage
-    { langId :: Int
-    , langName :: String
-    , langReleasedOn :: Int
+    { id :: Int
+    , name :: String
+    , releasedOn :: Int
     }
     deriving (Eq, Show)
 
@@ -68,11 +77,13 @@ api :: Proxy API
 api = Proxy
 
 type RootEndpoint = Get '[PlainText] String
+type UsersEndpoint = "users" :> Get '[JSON] [User]
+type LangsEndpoint = "langs" :> Get '[JSON] [ProgrammingLanguage]
 
 type API =
     RootEndpoint
-        :<|> "users" :> Get '[JSON] [User]
-        :<|> "langs" :> Get '[JSON] [ProgrammingLanguage]
+        :<|> UsersEndpoint
+        :<|> LangsEndpoint
 
 server :: Server API
 server =
@@ -87,6 +98,8 @@ users :: [User]
 users =
     [ User 1 "Isaac" "Newton"
     , User 2 "Albert" "Einstein"
+    , User{id = 3, firstName = "Ada", lastName = "Lovelace"}
+    , User{id = 4, firstName = "Alan", lastName = "Turing"}
     ]
 
 programmingLanguages :: [ProgrammingLanguage]
