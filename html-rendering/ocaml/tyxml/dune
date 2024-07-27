@@ -1,0 +1,5 @@
+(executables
+ (names main main_ppx main_jsx)
+ (libraries tyxml)
+ (preprocess
+  (pps tyxml-ppx tyxml-jsx)))

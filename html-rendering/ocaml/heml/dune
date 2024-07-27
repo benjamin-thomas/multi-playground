@@ -1,0 +1,5 @@
+(executable
+ (name main)
+ (libraries dedent)
+ (preprocess
+  (pps ppx_heml)))

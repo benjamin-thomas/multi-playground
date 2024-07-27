@@ -1,0 +1,37 @@
+
+open Printf
+
+(*
+
+dune exec --no-print-directory --display=quiet ./main.exe -w
+
+NOTE
+
+ocamlformat does not work properly with this file extension. I could not find
+a way to make it work.
+
+*)
+
+type doc = Element  of string * doc list | Text of string
+
+let render d =
+  let rec render indent =
+    let indents = List.init indent (fun _ -> "  ") |> String.concat "" in
+    function
+    | Element(name, children) ->
+      let children = List.map (render (indent + 1)) children in
+      sprintf "%s<%s>\n%s\n%s</%s>" indents name (String.concat "\n" children) indents name
+    | Text s -> sprintf "%s%s" indents s
+  in
+  render 0 d
+
+let div ~children () = Element ("div", children)
+let text s = Text s
+
+let () =
+  print_endline (render (
+    <div>
+      <div>(text "title1")</div>
+      <div>(text "content3")</div>
+    </div>
+  ))

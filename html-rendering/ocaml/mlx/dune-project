@@ -1,0 +1,16 @@
+(lang dune 3.16)
+
+(generate_opam_files false)
+
+(package
+ (allow_empty)
+ (name mlx-example)
+ (depends dune mlx))
+
+(dialect
+ (name mlx)
+ (implementation
+  (extension mlx)
+  (merlin_reader mlx)
+  (preprocess
+   (run mlx-pp %{input-file}))))
