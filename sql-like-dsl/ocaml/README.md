@@ -1,0 +1,1 @@
+dune test -w
