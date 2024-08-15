@@ -1,0 +1,5 @@
+(executables
+ (names main)
+ (preprocess
+  (pps ppx_monad))
+ (libraries lib ppx_monad unix))
