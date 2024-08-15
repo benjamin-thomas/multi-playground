@@ -2,6 +2,7 @@
 
 module Main where
 
+import Control.Monad (void)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.State (
     StateT,
@@ -9,14 +10,13 @@ import Control.Monad.Trans.State (
     get,
     modify,
  )
-import Data.List (intercalate)
 
 {-
 
 cabal install --lib transformers
 
 Run with:
-    echo ./Main.hs | entr -c runghc /_
+    echo ./Main.hs | entr -c runghc -wAll /_
 
  -}
 
@@ -52,16 +52,16 @@ program =
                     Pure ()
      in do
             Broadcast "Booting up..."
-            users <- FetchUsers
-            broadcastOnEven users
+            users1 <- FetchUsers
+            broadcastOnEven users1
 
             InviteUser "@John"
-            users <- FetchUsers
-            broadcastOnEven users
+            users2 <- FetchUsers
+            broadcastOnEven users2
 
             InviteUser "@Jane"
-            users <- FetchUsers
-            broadcastOnEven users
+            users3 <- FetchUsers
+            broadcastOnEven users3
             Broadcast "Shutting down..."
 
 data AppState = AppState
@@ -102,13 +102,14 @@ interpret command =
             quote v = "'" <> v <> "'"
 
 main :: IO ()
-main = do
-    let initialState =
-            AppState
-                { stUsers = ["@Bob"]
-                , stCounter = 1
-                }
-    execStateT
-        (interpret program)
-        initialState
-    pure ()
+main =
+    void $
+        execStateT
+            (interpret program)
+            initialState
+  where
+    initialState =
+        AppState
+            { stUsers = ["@Bob"]
+            , stCounter = 1
+            }
