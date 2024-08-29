@@ -83,3 +83,63 @@ module ParallelValidation = struct
     ; test (add 1 (-2) (-3)) ~expect:(Error [ "Not positive: -3"; "Not positive: -2" ])
   ;;
 end
+
+let option_to_list f value =
+  match f value with
+  | None -> []
+  | Some x -> [ x ]
+;;
+
+module ParallelValidation2 = struct
+  open Base
+
+  type ('err, 'raw) validation = 'raw -> 'err option
+  type email = Email of string [@@deriving sexp, compare]
+
+  let mkEmail str = Email str
+
+  let validate constructor validations value =
+    match List.concat_map ~f:(fun f -> option_to_list f value) validations with
+    | [] -> Ok (constructor value)
+    | errs -> Error errs
+  ;;
+
+  let length_greater_than n err v =
+    if String.length v < n then
+      Some err
+    else
+      None
+  ;;
+
+  let string_includes pattern err v =
+    if String.is_substring v ~substring:pattern then
+      None
+    else
+      Some err
+  ;;
+
+  let%test_unit "parallel validation 2" =
+    let open Base in
+    let test = [%test_result: string option] in
+    ()
+    ; test ~expect:None (length_greater_than 5 "too short!" "hello")
+    ; test ~expect:(Some "too short!") (length_greater_than 5 "too short!" "wat")
+  ;;
+
+  let%test_unit "validate" =
+    let email_validators =
+      [ length_greater_than 5 "too short!"
+      ; string_includes "@" "does not look like an email"
+      ]
+    in
+    let open Base in
+    let test = [%test_result: (email, string list) Result.t] in
+    ()
+    ; test
+        ~expect:(Error [ "too short!"; "does not look like an email" ])
+        (validate mkEmail email_validators "user")
+    ; test
+        ~expect:(Ok (Email "user@example.com"))
+        (validate mkEmail email_validators "user@example.com")
+  ;;
+end
