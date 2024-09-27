@@ -7,7 +7,7 @@ break-separators=before
 dock-collection-brackets=false
 
 # sequence-style=separator
-let-binding-spacing=double-semicolon
+# let-binding-spacing=double-semicolon
 
 # Add new lines when applying multiple pipe operators!!
 break-infix=fit-or-vertical

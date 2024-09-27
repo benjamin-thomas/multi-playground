@@ -2,5 +2,10 @@
  (name internal)
  (inline_tests)
  (preprocess
-  (pps ppx_inline_test ppx_assert ppx_sexp_conv ppx_deriving.ord))
- (libraries angstrom))
+  (pps
+   ppx_inline_test
+   ppx_assert
+   ppx_sexp_conv
+   ppx_deriving.ord
+   ppx_variants_conv))
+ (libraries angstrom calendar core))
