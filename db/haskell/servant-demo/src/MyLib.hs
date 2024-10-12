@@ -9,11 +9,8 @@ module MyLib (
     someOtherValue,
     startApp,
     app,
-    User (..),
-    encodeUser,
 ) where
 
-import Data.Aeson (encode)
 import Data.Aeson.TH (defaultOptions, deriveJSON)
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (defaultSettings, runSettings, setLogger, setPort)
@@ -29,6 +26,8 @@ import Servant (
     (:>),
  )
 import Text.Printf (printf)
+import Users (User)
+import Users qualified as Users
 
 someValue :: Int
 someValue = 42
@@ -41,18 +40,6 @@ someFunc = putStrLn "someFunc3"
 
 -- startApp :: Int -> IO ()
 -- startApp port = run port app
-
-data User = User
-    { id :: Int
-    , firstName :: String
-    , lastName :: String
-    }
-    deriving (Eq, Show)
-
-$(deriveJSON defaultOptions ''User)
-
--- encodeUser :: User -> ByteString
-encodeUser user = encode user
 
 data ProgrammingLanguage = ProgrammingLanguage
     { id :: Int
@@ -88,19 +75,11 @@ type API =
 server :: Server API
 server =
     return root
-        :<|> return users
+        :<|> return Users.list
         :<|> return programmingLanguages
 
 root :: String
 root = "Hello!"
-
-users :: [User]
-users =
-    [ User 1 "Isaac" "Newton"
-    , User 2 "Albert" "Einstein"
-    , User{id = 3, firstName = "Ada", lastName = "Lovelace"}
-    , User{id = 4, firstName = "Alan", lastName = "Turing"}
-    ]
 
 programmingLanguages :: [ProgrammingLanguage]
 programmingLanguages =

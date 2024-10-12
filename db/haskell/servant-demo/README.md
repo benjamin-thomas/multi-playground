@@ -1,14 +1,18 @@
 # servant-tutorial
 
+WIP: I should finish this exploration
+
 Run with:
 
 `--warnings` forces running main even if there are warnings
+
 ```sh
 ghcid --lint -c 'cabal repl exe:servant-demo' -T main --warnings
 PORT=4000 ghcid -c 'cabal repl exe:servant-demo' -T main --warnings
 ```
 
-Source: https://github.com/commercialhaskell/stack/issues/1765#issuecomment-480559514
+Source:
+https://github.com/commercialhaskell/stack/issues/1765#issuecomment-480559514
 
 ---
 
@@ -22,6 +26,7 @@ ghcid --target=servant-demo-test
 ```
 
 Or
+
 ```
 cabal repl servant-demo-test
 ghci> :main

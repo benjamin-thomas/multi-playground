@@ -4,7 +4,8 @@ module Main (main) where
 
 import Data.ByteString.Char8 qualified as BC
 import Data.CaseInsensitive qualified as CI
-import MyLib (User (..), app, encodeUser, someOtherValue, someValue)
+import MyLib (app, someOtherValue, someValue)
+import Users qualified as Users
 import Test.Hspec (Spec, describe, hspec, it, shouldBe)
 import Test.Hspec.Wai (
     ResponseMatcher (..),
