@@ -71,6 +71,8 @@ ws = skipMany (oneOf " \t\n\r")
 Right (Scheduled 2024-09-28)
 
 >>> parse orgItem "" "CLOSED: <2024-02-30 Sun>"
+Left (line 1, column 20):
+Invalid date: (2024,2,30)
  -}
 orgItem :: Parser OrgItem
 orgItem =
