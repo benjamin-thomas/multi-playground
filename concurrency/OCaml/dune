@@ -1,0 +1,8 @@
+(executables
+ (names many_counters many_counters_eio producer_consumer)
+ (libraries eio eio_main))
+
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))
