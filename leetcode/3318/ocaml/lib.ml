@@ -1,40 +1,4 @@
-module IntMap = Map.Make (Int)
-
-let occurrences =
-  List.fold_left
-    (fun acc n ->
-      IntMap.update
-        n
-        (function
-          | None -> Some 1
-          | Some prev -> Some (prev + 1))
-        acc)
-    IntMap.empty
-;;
-
-let sorted_occurrences map =
-  map
-  |> IntMap.to_list
-  |> List.sort (fun a b ->
-    match compare (snd b) (snd a) with
-    | 0 -> compare (fst b) (fst a)
-    | v -> v)
-;;
-
-(** Takes at least [n] elements in the [lst] list.
-    Otherwise, an empty list is returned. *)
-let take n lst =
-  let rec aux acc n lst =
-    match lst with
-    | [] -> if n = 0 then acc else []
-    | x :: xs -> if n = 0 then acc else aux (x :: acc) (n - 1) xs
-  in
-  aux [] n lst |> List.rev
-;;
-
-let sum_occurences n lst =
-  lst |> take n |> List.fold_left (fun acc (k, v) -> acc + (k * v)) 0
-;;
+open Impl
 
 module TestOccurrences = struct
   open Core
@@ -71,18 +35,6 @@ module TestOccurrences = struct
   ;;
 end
 
-let rec drop n lst =
-  match lst with
-  | [] -> []
-  | x :: xs -> if n > 0 then drop (n - 1) xs else x :: xs
-;;
-
-let rec make_windows n lst =
-  match take n lst with
-  | [] -> []
-  | xs -> xs :: make_windows n (drop 1 lst)
-;;
-
 module TestWindow = struct
   open Core
 
@@ -117,22 +69,18 @@ module TestWindow = struct
   ;;
 end
 
-let solve lst k x =
-  let intermediate =
-    let make_occ lst = sum_occurences x @@ sorted_occurrences @@ occurrences lst in
-    make_windows k lst |> List.map make_occ
-  in
-  List.fold_left (fun acc x -> acc + x) 0 intermediate
-;;
+module TestImpl = struct
+  open Core
 
-(*
-   OK
-   utop # Lib.solve [1;1;2;2;3;4;2;3] 6 2;;
-   - : int = 28
+  let%expect_test "example1" =
+    ()
+    ; print_s [%sexp (solve [ 1; 1; 2; 2; 3; 4; 2; 3 ] 6 2 : int)]
+    ; [%expect {| 28 |}]
+  ;;
 
-   ---
-
-   OK
-   utop # Lib.solve [3;8;7;8;7;5] 2 2;;
-   - : int = 6
-*)
+  let%expect_test "example2" =
+    ()
+    ; print_s [%sexp (solve [ 3; 8; 7; 8; 7; 5 ] 2 2 : int)]
+    ; [%expect {| 68 |}]
+  ;;
+end
