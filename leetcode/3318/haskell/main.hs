@@ -51,8 +51,8 @@ makeWindow2 n lst =
 >>> occurrences [1,1,2,2,3,4]
 [(2,2),(1,2),(4,1),(3,1)]
 -}
-occurrences :: (Ord k, Ord v, Num v) => [k] -> [(k, v)]
-occurrences lst =
+occurrencesDesc :: (Ord k, Ord v, Num v) => [k] -> [(k, v)]
+occurrencesDesc lst =
   List.sortBy
     ( \(ka, va) (kb, vb) ->
         case compare vb va of
@@ -68,7 +68,7 @@ occurrences lst =
 -}
 topOccurrences :: (Ord k, Ord v, Num v) => Int -> [k] -> [(k, v)]
 topOccurrences x lst =
-  take x $ occurrences lst
+  take x $ occurrencesDesc lst
 
 {- |
 2*3 + 4*5 = 26
@@ -86,10 +86,9 @@ sumOccurrences lst = sum $ map (uncurry (*)) lst
 68
 -}
 solve :: (Ord a, Num a, Num k, Eq k) => k -> Int -> [a] -> a
-solve k x =
-  sum
-    . map (sumOccurrences . topOccurrences x)
-    . makeWindow k
+solve k x lst =
+  sum $
+    sumOccurrences . take x . occurrencesDesc <$> makeWindow k lst
 
 {- |
 >>> solve' [1,1,2,2,3,4,2,3] 6 2
