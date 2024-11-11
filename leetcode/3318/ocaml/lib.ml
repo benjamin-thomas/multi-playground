@@ -4,9 +4,7 @@ module TestOccurrences = struct
   open Core
 
   let%expect_test _ =
-    let test lst =
-      print_s [%sexp (sorted_occurrences (occurrences lst) : (int * int) list)]
-    in
+    let test lst = print_s [%sexp (Occurrences.(sort @@ make lst) : (int * int) list)] in
     ()
     ; test [ 1; 1; 2; 2; 3; 4 ]
     ; [%expect {| ((2 2) (1 2) (4 1) (3 1)) |}]
@@ -19,9 +17,7 @@ module TestOccurrences = struct
   ;;
 
   let%expect_test "sum2" =
-    let test lst =
-      print_s [%sexp (sum_occurences 2 @@ sorted_occurrences @@ occurrences lst : int)]
-    in
+    let test lst = print_s [%sexp (Occurrences.(sum 2 @@ sort @@ make lst) : int)] in
     ()
     ; test [ 1; 1; 2; 2; 3; 4 ]
     ; [%expect {| 6 |}]
