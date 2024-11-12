@@ -32,3 +32,13 @@ export function solve(items: number[], k: number, x: number): number {
         .map((window) => topmost(x, compareValues, occurrences(window)))
         .reduce((acc, rows) => acc + sumRows(rows), 0);
 }
+
+export function solve2(items: number[], k: number, x: number): number[] {
+    const compareValues = (a: number, b: number) => b - a;
+    const result: number[] = [];
+    slidingWindow(items, k)
+        .map((window) => topmost(x, compareValues, occurrences(window)))
+        .forEach((rows) => result.push(sumRows(rows)));
+        
+    return result;
+}
