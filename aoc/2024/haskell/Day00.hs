@@ -5,8 +5,6 @@
 build-depends: base
 -}
 
-{- FOURMOLU_DISABLE -}
-
 {-
 NOTE: the pretty printer requires a minimal cabal script.
       If you do require dependencies, just create a normal cabal project, as the
@@ -17,8 +15,7 @@ NOTE: the pretty printer requires a minimal cabal script.
 
 Terminal 1
 ==========
-$ ghci
-$ cabal repl --repl-options "-interactive-print=Text.Pretty.Simple.pPrint" --build-depends pretty-simple ./Day02.hs
+./repl
 > :cmd return $ unlines [":!clear",":reload", "answer1 example"]
 
 Terminal 2
@@ -26,8 +23,6 @@ Terminal 2
 find *.hs | entr tmux send-keys -t aoc:0 Up Enter
 
  -}
-
-{- FOURMOLU_ENABLE -}
 
 module Day00 (main, example) where
 
