@@ -24,14 +24,16 @@ find *.hs | entr tmux send-keys -t aoc:0 Up Enter
 
 module Day03 (main, char2int, advanceUntil) where
 
+import Control.Applicative
 import Data.Char (ord)
 import Data.List (isPrefixOf)
+import Prelude hiding (any)
 
 main :: IO ()
 main = do
     input <- readFile "../_inputs/03.txt"
-    print $ answer1 input -- 178794710
-    print $ answer2 input
+    print $ answer1 input -- want: 178794710
+    print $ answer2 input -- want: 76729637
 
 answer1 :: String -> Int
 answer1 str = case fst <$> runParser (many1' mul) str of
@@ -40,8 +42,10 @@ answer1 str = case fst <$> runParser (many1' mul) str of
         foldl (\acc (Mul (a, b)) -> acc + a * b) 0 multiplications
 
 answer2 :: String -> Int
-answer2 =
-    const 0
+answer2 str =
+    case extractInstructions str of
+        Nothing -> error "parse error"
+        Just xs -> evalInstructions xs
 
 newtype Parser a
     = Parser {runParser :: String -> Maybe (a, String)}
@@ -61,6 +65,12 @@ instance Applicative Parser where
         Just (f, rest1) -> case p2 rest1 of
             Nothing -> Nothing
             Just (x, rest2) -> Just (f x, rest2)
+
+instance Alternative Parser where
+    empty = Parser $ const Nothing
+    (Parser p1) <|> (Parser p2) = Parser $ \str -> case p1 str of
+        Just x -> Just x
+        Nothing -> p2 str
 
 {-
 >>> char2int <$> ['0' .. '9']
@@ -272,5 +282,51 @@ newtype Mul = Mul (Int, Int)
 mul :: Parser Mul
 mul =
     curry Mul
-        <$> (untilP' (ident "mul(") *> int)
+        <$> (ident "mul(" *> int)
         <*> (char ',' *> int <* char ')')
+
+newtype Do = Do String
+    deriving (Show)
+
+do' :: Parser Do
+do' = Do <$> ident "do()"
+
+newtype Dont = Dont String
+    deriving (Show)
+
+dont :: Parser Dont
+dont = Dont <$> ident "don't()"
+
+data Instruction
+    = MkDo Do
+    | MkDont Dont
+    | MkMul Mul
+    deriving (Show)
+
+instruction :: Parser Instruction
+instruction =
+    asum
+        [ MkDo <$> do'
+        , MkDont <$> dont
+        , MkMul <$> mul
+        ]
+
+extractInstructions :: String -> Maybe [Instruction]
+extractInstructions str = fst <$> runParser (many1 (untilP' instruction)) str
+
+evalInstructions :: [Instruction] -> Int
+evalInstructions xs =
+    snd $ foldl step (True, 0) xs
+  where
+    step (isOn, total) instr = case instr of
+        (MkDo _) -> (True, total)
+        (MkDont _) -> (False, total)
+        (MkMul (Mul (x, y))) -> (isOn, if isOn then total + x * y else total)
+
+-- wipStr = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+-- wip :: IO ()
+-- wip = case extractInstructions wipStr of
+--     Nothing -> putStrLn "parse error"
+--     Just xs -> do
+--         mapM_ print xs
+--         print $ evalInstructions xs
