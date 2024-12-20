@@ -1,4 +1,6 @@
+{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# OPTIONS_GHC -Wall -Wextra #-}
 
 {- cabal:
@@ -10,6 +12,8 @@ module Day04 where
 
 import Control.Arrow (first)
 import Data.List (transpose)
+import Data.Map (Map)
+import Data.Map qualified as Map
 import Data.Tuple (swap)
 
 example :: [String]
@@ -25,12 +29,6 @@ example =
     , ['M', 'A', 'M', 'M', 'M', 'X', 'M', 'M', 'M', 'M']
     , ['M', 'X', 'M', 'X', 'A', 'X', 'M', 'A', 'S', 'X']
     ]
-
-countXmas :: String -> Int
-countXmas = \case
-    [] -> 0
-    ('X' : 'M' : 'A' : 'S' : xs) -> 1 + countXmas xs
-    _ : xs -> countXmas xs
 
 rot45 :: [[b]] -> [[b]]
 rot45 lst = fmap (\(y, x) -> lst !! y !! x) <$> rot45coords lst
@@ -83,25 +81,14 @@ example0 =
     , ['M', 'N', 'O', 'P']
     ]
 
-main :: IO ()
-main = do
-    input <- readFile "../_inputs/04.txt"
-    putStrLn "Part 1:"
-    print $ answer1' input -- 2344
-    putStrLn "---"
-    putStrLn "Part 2:"
-    putStrLn "TODO"
-
-{-
-
-1 2 3
-4 5 6
-7 8 9
-
- -}
-
 answer1' :: String -> Int
 answer1' lst = sum $ concat $ answer1 (lines lst)
+
+countXmas :: String -> Int
+countXmas = \case
+    [] -> 0
+    ('X' : 'M' : 'A' : 'S' : xs) -> 1 + countXmas xs
+    _ : xs -> countXmas xs
 
 {-
 
@@ -125,3 +112,89 @@ answer1 lst =
             , transpose lst
             , transpose lstRev
             ]
+
+--------------------------------------------------------------------------------
+
+kv :: [String] -> [((Int, Int), Char)]
+kv str =
+    [ ((x, y), c)
+    | (y, row :: String) <- zip [0 ..] str
+    , (x, c :: Char) <- zip [0 ..] row
+    ]
+
+{-
+
+Debug with:
+
+Map.mapWithKey (\xy _ -> fromEnum $ check' example2 xy) example2
+
+ -}
+example2 :: Map (Int, Int) Char
+example2 = Map.fromList (kv lst)
+  where
+    lst :: [String]
+    lst =
+        [ ".M.S......"
+        , "..A..MSMS." -- mapM_ print $ check example2 (2,1)
+        , ".M.S.MAA.." -- (\row -> mas == row || mas == reverse row) <$> check example2 (2,1)
+        , "..A.ASMSM."
+        , ".M.S.M...."
+        , ".........."
+        , "S.S.S.S.S."
+        , ".A.A.A.A.." -- (1,7)
+        , "M.M.M.M.M."
+        , ".........."
+        ]
+
+check :: Map (Int, Int) Char -> (Int, Int) -> [[Maybe Char]]
+check dict (x, y) =
+    let
+        at = flip Map.lookup dict
+
+        diagL :: [Maybe Char]
+        diagL =
+            [ at (x - 1, y - 1)
+            , at (x, y)
+            , at (x + 1, y + 1)
+            ]
+
+        diagR :: [Maybe Char]
+        diagR =
+            [ at (x - 1, y + 1)
+            , at (x, y)
+            , at (x + 1, y - 1)
+            ]
+     in
+        [ diagL
+        , diagR
+        ]
+
+mas :: [Maybe Char]
+mas = fmap Just ['M', 'A', 'S']
+
+check' :: Map (Int, Int) Char -> (Int, Int) -> Bool
+check' dict (x, y) =
+    all
+        (\row -> mas == row || mas == reverse row)
+        (check dict (x, y))
+
+{-
+
+>>> answer2 example2
+9
+
+ -}
+answer2 :: Map (Int, Int) Char -> Int
+answer2 dict =
+    Map.foldr (+) 0 $ Map.mapWithKey (\xy _ -> fromEnum $ check' dict xy) dict
+
+--------------------------------------------------------------------------------
+
+main :: IO ()
+main = do
+    input <- readFile "../_inputs/04.txt"
+    putStrLn "Part 1:"
+    print $ answer1' input -- 2344
+    putStrLn "---"
+    putStrLn "Part 2:"
+    print $ answer2 $ Map.fromList (kv $ lines input) -- 1815
