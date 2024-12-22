@@ -22,6 +22,14 @@ Terminal 2
 ==========
 find *.hs | entr tmux send-keys -t aoc:0 Up Enter
 
+Terminal 2 (alternative)
+========================
+find *.hs | entr tmux send-keys -t aoc:0 ':cmd return $ unlines [":!clear",":reload"]' Enter
+
+Or just do this
+===============
+ghcid -T :main ./Day00.hs
+
  -}
 
 module Day00 (main, example) where
