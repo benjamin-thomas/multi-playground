@@ -4,6 +4,7 @@
 module Day05 (main, splitManyA, splitManyB, splitManyC) where
 
 import Data.Bifunctor (Bifunctor (bimap), second)
+import Data.Bool (bool)
 import Data.Either (lefts, rights)
 import Data.List (unfoldr)
 import Data.List qualified as List
@@ -129,17 +130,28 @@ makeUpdates lst =
 middle :: [a] -> a
 middle lst = lst !! (length lst `div` 2)
 
+{-
+>>> fmap (bool <$> Left <*> Right <*> even) [1,2,3]
+[Left 1,Right 2,Left 3]
+
+>>> bool <$> Left <*> Right <*> even <$> [1,2,3]
+[Left 1,Right 2,Left 3]
+
+ -}
 applyRules :: (Map Int [Int], [[Int]]) -> [Either [Int] [Int]]
 applyRules (rules, updates) =
-    fmap
-        ( \update ->
-            if rulePass rules update
-                then
-                    Right update
-                else
-                    Left update
-        )
-        updates
+    -- fmap
+    --     ( \update ->
+    --         if rulePass rules update
+    --             then
+    --                 Right update
+    --             else
+    --                 Left update
+    --     )
+    --     updates
+    -- fmap (\update -> bool (Left update) (Right update) (rulePass rules update)) updates
+    -- fmap (bool <$> Left <*> Right <*> rulePass rules) updates
+    bool <$> Left <*> Right <*> rulePass rules <$> updates
 
 ruleToNum :: Either [Int] [Int] -> Either [Int] Int
 ruleToNum =
@@ -156,23 +168,22 @@ reorder :: Map Int [Int] -> [Int] -> [Int]
 reorder rules = aux []
   where
     aux :: [Int] -> [Int] -> [Int]
-    aux left [] = left
-    aux left (x : remaining) =
+    aux acc [] = acc
+    aux acc (x : rest) =
         case Map.lookup x rules of
             Nothing ->
-                aux (x : left) remaining
+                aux (x : acc) rest
             Just rule ->
-                ( if List.any (`elem` remaining) rule
+                if List.any (`elem` rest) rule
                     then
-                        aux left (remaining ++ [x])
+                        aux acc (rest ++ [x])
                     else
-                        aux (x : left) remaining
-                )
+                        aux (x : acc) rest
 
 answer2 :: String -> Int
 answer2 input =
     let (rules, updates) = bimap makeRules makeUpdates $ splitOnce [] $ lines input
-        bad = lefts (applyRules (rules, updates))
+        bad = lefts $ applyRules (rules, updates)
      in sum $ middle . reorder rules <$> bad
 
 -- ghcid -T :main ./Day05.hs
