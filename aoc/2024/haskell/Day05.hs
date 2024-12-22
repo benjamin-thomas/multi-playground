@@ -4,25 +4,30 @@
 module Day05 (main, splitManyA, splitManyB, splitManyC) where
 
 import Data.Bifunctor (Bifunctor (bimap), second)
+import Data.Either (lefts, rights)
 import Data.List (unfoldr)
+import Data.List qualified as List
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Maybe (fromMaybe)
 
-rulePass :: [Int] -> Map Int [Int] -> [Int] -> Bool
-rulePass seen rules remaining =
-    case remaining of
-        [] -> True
-        (x : xs) ->
-            let
-                isValid =
-                    case Map.lookup x rules of
-                        Nothing ->
-                            x `notElem` seen
-                        Just after ->
-                            x `notElem` seen && all (`notElem` seen) after
-             in
-                isValid && rulePass (x : seen) rules xs
+rulePass :: Map Int [Int] -> [Int] -> Bool
+rulePass rules = aux []
+  where
+    aux :: [Int] -> [Int] -> Bool
+    aux seen remaining =
+        case remaining of
+            [] -> True
+            (x : xs) ->
+                let
+                    isValid =
+                        case Map.lookup x rules of
+                            Nothing ->
+                                x `notElem` seen
+                            Just after ->
+                                x `notElem` seen && all (`notElem` seen) after
+                 in
+                    isValid && aux (x : seen) xs
 
 {-
 
@@ -107,17 +112,6 @@ splitManyC c =
 splitOnce :: (Eq a) => a -> [a] -> ([a], [a])
 splitOnce c = second (drop 1) . break (== c)
 
--- rules :: Map Int [Int]
--- rules =
---     Map.fromList
---         [ (29, [13])
---         , (47, [13, 29, 53, 61])
---         , (53, [13, 29])
---         , (61, [13, 29, 53])
---         , (75, [13, 29, 47, 53, 61])
---         , (97, [13, 29, 47, 53, 61, 75])
---         ]
-
 -- mapM_ print $ Map.toList $ Data.List.sort <$> makeRules l
 makeRules :: [String] -> Map Int [Int]
 makeRules =
@@ -132,25 +126,65 @@ makeUpdates :: [String] -> [[Int]]
 makeUpdates lst =
     fmap read . splitManyC ',' <$> lst
 
-answer1 :: [Char] -> [Int]
+middle :: [a] -> a
+middle lst = lst !! (length lst `div` 2)
+
+applyRules :: (Map Int [Int], [[Int]]) -> [Either [Int] [Int]]
+applyRules (rules, updates) =
+    fmap
+        ( \update ->
+            if rulePass rules update
+                then
+                    Right update
+                else
+                    Left update
+        )
+        updates
+
+ruleToNum :: Either [Int] [Int] -> Either [Int] Int
+ruleToNum =
+    \case
+        Right xs -> Right $ middle xs
+        Left xs -> Left xs
+
+answer1 :: String -> Int
 answer1 input =
     let (rules, updates) = bimap makeRules makeUpdates $ splitOnce [] $ lines input
-        rulesApplied =
-            fmap
-                ( \update ->
-                    if rulePass [] rules update
-                        then
-                            Just update
-                        else Nothing
+     in sum $ rights (ruleToNum <$> applyRules (rules, updates))
+
+reorder :: Map Int [Int] -> [Int] -> [Int]
+reorder rules = aux []
+  where
+    aux :: [Int] -> [Int] -> [Int]
+    aux left [] = left
+    aux left (x : remaining) =
+        case Map.lookup x rules of
+            Nothing ->
+                aux (x : left) remaining
+            Just rule ->
+                ( if List.any (`elem` remaining) rule
+                    then
+                        aux left (remaining ++ [x])
+                    else
+                        aux (x : left) remaining
                 )
-                updates
-        middle lst = lst !! (length lst `div` 2)
-     in middle <$> catMaybes rulesApplied
+
+answer2 :: String -> Int
+answer2 input =
+    let (rules, updates) = bimap makeRules makeUpdates $ splitOnce [] $ lines input
+        bad = lefts (applyRules (rules, updates))
+     in sum $ middle . reorder rules <$> bad
 
 -- ghcid -T :main ./Day05.hs
 main :: IO ()
 main = do
-    exampleInput <- readFile "../_inputs/05.example"
+    example <- readFile "../_inputs/05.example"
     input <- readFile "../_inputs/05.txt"
-    putStr "Answer1 (example): " >> print (sum $ answer1 exampleInput) -- 143
-    putStr "Answer1          : " >> print (sum $ answer1 input) -- 7307
+    --
+    putStr "Answer1 (example): " >> print (answer1 example) -- 143
+    putStr "Answer1          : " >> print (answer1 input) -- 7307
+    --
+    putStrLn "---"
+    --
+    putStr "Answer2 (example): " >> print (answer2 example) -- 123
+    putStr "Answer2          : " >> print (answer2 input) -- 4713
