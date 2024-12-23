@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wall -Wextra #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -7,7 +8,9 @@ module Day06 where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (forM_, when)
-import Data.Bifunctor (Bifunctor (first))
+import Data.Bool (bool)
+import Data.Coerce (coerce)
+import Data.Function ((&))
 import Data.Map (Map)
 import Data.Map qualified as Map
 
@@ -43,7 +46,6 @@ printGridExn state = do
     let grid = stGrid state
     let guardPos = stGuardPos state
     forM_ [0 .. height] $ \y -> do
-        putStrLn ""
         forM_ [0 .. width] $ \x -> do
             when ((y, x) == guardPos) $ putStr yellow
             let char = lookupExn grid (y, x)
@@ -51,49 +53,94 @@ printGridExn state = do
             putChar char
             when (char == 'X') $ putStr reset
             when ((y, x) == guardPos) $ putStr reset
+        putStrLn ""
 
 data State = State
     { stIteration :: Int
     , stGuardPos :: (Int, Int)
+    , stGuardDir :: (Int, Int)
     , stGrid :: Map (Int, Int) Char
     , stGridDims :: (Int, Int)
+    , stIsDone :: Bool
     }
 
+(.+.) :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
+(.+.) (y1, x1) (y2, x2) = (y1 + y2, x1 + x2)
+
+guardIcon :: (Int, Int) -> Char
+guardIcon = \case
+    (-1, 0) -> '^'
+    (0, 1) -> '>'
+    (1, 0) -> 'v'
+    (0, -1) -> '<'
+    _ -> error "Invalid direction"
+
+rotateGuard :: (Int, Int) -> (Int, Int)
+rotateGuard = \case
+    (-1, 0) -> (0, 1)
+    (0, 1) -> (1, 0)
+    (1, 0) -> (0, -1)
+    (0, -1) -> (-1, 0)
+    _ -> error "Invalid direction"
+
 update :: State -> State
-update state = do
-    let grid = stGrid state
-    let oldGuardPos = stGuardPos state
-    let newGuardPos = case Map.lookup (first pred oldGuardPos) grid of
-            Nothing -> oldGuardPos
-            Just '#' -> oldGuardPos
-            _ -> first pred oldGuardPos
+update state =
+    do
+        let oldGrid = stGrid state
+        let oldGuardPos = stGuardPos state
+        let oldGuardDir = stGuardDir state
 
-    let newGrid1 = Map.update (\_ -> Just '^') newGuardPos grid
-    let newGrid2 =
-            if newGuardPos == oldGuardPos
-                then newGrid1
-                else
-                    Map.update (\_ -> Just 'X') oldGuardPos newGrid1
-    state
-        { stIteration = stIteration state + 1
-        , stGuardPos = newGuardPos
-        , stGrid = newGrid2
-        }
+        let (newGuardPos, newGuardDir, isDone) =
+                let candidatePos = oldGuardPos .+. oldGuardDir
+                 in case Map.lookup candidatePos oldGrid of
+                        Nothing -> (oldGuardPos, oldGuardDir, True)
+                        Just '#' -> (oldGuardPos, rotateGuard oldGuardDir, False)
+                        _ -> (candidatePos, oldGuardDir, False)
 
-gameLoop :: State -> IO ()
-gameLoop state = do
+        let newGrid :: Map (Int, Int) Char
+            newGrid =
+                oldGrid
+                    & Map.update (const $ Just $ guardIcon newGuardDir) newGuardPos
+                    & bool
+                        (Map.update (const $ Just 'X') oldGuardPos)
+                        id
+                        (newGuardPos == oldGuardPos)
+
+        state
+            { stIteration = stIteration state + 1
+            , stGuardPos = newGuardPos
+            , stGuardDir = newGuardDir
+            , stGrid = newGrid
+            , stIsDone = isDone
+            }
+
+countTrail :: Map k Char -> Int
+countTrail = Map.foldl' (\tot v -> tot + (if v == 'X' then 1 else 0)) 0
+
+newtype VisualMode = VisualMode Bool
+
+gameLoop :: VisualMode -> State -> IO ()
+gameLoop visualMode state = do
     putStr "\ESC[2J\ESC[H"
-    putStrLn $ "Iteration: " ++ show (stIteration state)
-    putStrLn "---"
-    putStr "Guard is at pos: " >> print (stGuardPos state)
-    printGridExn state
-    threadDelay 1000_000
+    when (coerce visualMode) $ do
+        putStrLn $ "Iteration: " ++ show (stIteration state)
+        putStrLn ""
+        putStr "Guard is at pos: " >> print (stGuardPos state)
+        putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
+        printGridExn state
+        threadDelay 70_000
     let newState = update state
-    gameLoop newState
+    if not (stIsDone newState)
+        then
+            gameLoop visualMode newState
+        else
+            putStr "\nExiting with trail count of: " >> print (countTrail (stGrid state) + 1)
 
 main :: IO ()
 main = do
-    example <- readFile "../_inputs/06.example"
+    let visualMode = VisualMode False
+    -- example <- readFile "../_inputs/06.example" -- 41
+    example <- readFile "../_inputs/06.txt" -- 5404
     let grid = makeGrid example
     let guardPos = maybe (error "Guard not found") id (findGuardPos grid)
     let (height, width) =
@@ -106,8 +153,10 @@ main = do
             State
                 { stIteration = 0
                 , stGuardPos = guardPos
+                , stGuardDir = (-1, 0)
                 , stGrid = grid
                 , stGridDims = (height, width)
+                , stIsDone = False
                 }
 
-    gameLoop initState
+    gameLoop visualMode initState
