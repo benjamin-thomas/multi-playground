@@ -7,12 +7,12 @@
 module Day06 where
 
 import Control.Concurrent (threadDelay)
-import Control.Monad (forM_, when)
+import Control.Monad (foldM, forM_, when)
 import Data.Bool (bool)
-import Data.Coerce (coerce)
 import Data.Function ((&))
 import Data.Map (Map)
 import Data.Map qualified as Map
+import Data.Maybe (mapMaybe)
 
 yellow :: String
 yellow = "\ESC[1;33m"
@@ -104,6 +104,7 @@ data Outcome = Outcome
     { oExitedMap :: Bool
     , oCycleDetected :: Bool
     }
+    deriving (Show)
 
 update :: State -> (State, Outcome)
 update state =
@@ -160,58 +161,118 @@ update state =
 countTrail :: Map k Char -> Int
 countTrail = Map.foldl' (\tot v -> tot + (if v == 'X' then 1 else 0)) 0
 
-newtype VisualMode = VisualMode Bool
+data VisualMode = VisualMode
+    { mapIndex :: Int
+    , detectedLoopAt :: [(Int, Int)]
+    }
+    deriving (Show)
 
-gameLoop :: VisualMode -> State -> IO ()
+pluralize :: (Show a, Eq a, Num a) => a -> String -> String -> String
+pluralize n singular plural =
+    show n <> " " <> if n == 1 then singular else plural
+
+gameLoop :: Maybe VisualMode -> State -> IO Outcome
 gameLoop visualMode state = do
     putStr "\ESC[2J\ESC[H"
-    when (coerce visualMode) $ do
-        putStrLn $ "Iteration: " ++ show (stIteration state)
-        putStrLn ""
-        putStr "Guard is at pos: " >> print (stGuardPos state)
-        putStr "Guard slots: " >> print (stGuardSlots state)
-        putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
-        printGridExn state
-        threadDelay 100_000
+    case visualMode of
+        Nothing -> pure ()
+        Just (VisualMode{mapIndex, detectedLoopAt}) -> do
+            putStrLn $ "Iteration: " ++ show (stIteration state)
+            putStrLn $ "Map index: " ++ show mapIndex
+            putStrLn $
+                mconcat
+                    [ "Detected "
+                    , pluralize (length detectedLoopAt) "loop" "loops"
+                    , " at: " <> show detectedLoopAt
+                    ]
+            putStrLn ""
+            putStr "Guard is at pos: " >> print (stGuardPos state)
+            putStr "Guard slots: " >> print (stGuardSlots state)
+            putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
+            printGridExn state
+            threadDelay 1000_000
     let (newState, outcome) = update state
     if oCycleDetected outcome
         then
-            putStr "\nCycle detected at trail count of: " >> print (countTrail (stGrid state) + 1)
+            putStr "\nCycle detected at trail count of: "
+                >> print (countTrail (stGrid state) + 1)
+                >> pure outcome
         else
             if oExitedMap outcome
                 then
-                    putStr "\nExiting with trail count of: " >> print (countTrail (stGrid state) + 1)
+                    putStr "\nExiting with trail count of: "
+                        >> print (countTrail (stGrid state) + 1)
+                        >> pure outcome
                 else
                     gameLoop visualMode newState
 
 main :: IO ()
 main = do
-    let visualMode = VisualMode True
+    let visualMode = Just $ VisualMode{mapIndex = 0, detectedLoopAt = []}
     example <- readFile "../_inputs/06.example" -- 41
     -- example <- readFile "../_inputs/06.txt" -- 5404
-    let grid =
-            makeGrid example
+    let gridOrig = makeGrid example
+
+    let guardPos = maybe (error "Guard not found") id (findGuardPos gridOrig)
+    let (height, width) =
+            let keys = Map.keys gridOrig
+             in ( maximum $ fst <$> keys
+                , maximum $ snd <$> keys
+                )
+
+    let grids =
+            mapMaybe
+                ( \(pos, c) ->
+                    bool
+                        (Just (pos, Map.insert pos 'O' gridOrig))
+                        Nothing
+                        (c `elem` ['#', '^'])
+                )
+                (Map.toList gridOrig)
+
+    putStrLn "Grids to check:"
+
+    -- Detected 11 loops at: [(9,7),(8,7),(8,5),(8,3),(8,1),(7,7),(7,6),(7,2),(7,1),(6,3),(4,3)]
+
     -- & Map.insert (6, 3) 'O'
     -- & Map.insert (7, 6) 'O'
     -- & Map.insert (7, 7) 'O'
     -- & Map.insert (8, 1) 'O' -- some doubt here
     -- & Map.insert (8, 3) 'O'
     -- & Map.insert (9, 7) 'O'
-    let guardPos = maybe (error "Guard not found") id (findGuardPos grid)
-    let (height, width) =
-            let keys = Map.keys grid
-             in ( maximum $ fst <$> keys
-                , maximum $ snd <$> keys
-                )
 
-    let initState =
+    let initState newGrid =
             State
                 { stIteration = 0
                 , stGuardPos = guardPos
                 , stGuardDir = (-1, 0)
                 , stGuardSlots = Slots (Nothing, Nothing, Nothing, Nothing, Nothing)
-                , stGrid = grid
+                , stGrid = newGrid
                 , stGridDims = (height, width)
                 }
 
-    gameLoop visualMode initState
+    total <-
+        foldM
+            ( \(tot, idx, visualMode_) (oPos, grid) -> do
+                outcome <- gameLoop visualMode_ (initState grid)
+                let newVisualMode = case visualMode_ of
+                        Nothing -> Nothing
+                        Just vm -> Just $ vm{mapIndex = idx}
+                if oCycleDetected outcome
+                    then
+                        pure
+                            ( tot + 1
+                            , idx + 1
+                            , fmap
+                                ( \vm ->
+                                    vm{detectedLoopAt = oPos : detectedLoopAt vm}
+                                )
+                                newVisualMode
+                            )
+                    else pure (tot, idx + 1, newVisualMode)
+            )
+            ((0, 0, visualMode) :: (Int, Int, Maybe VisualMode))
+            grids
+
+    putStrLn "---"
+    print total
