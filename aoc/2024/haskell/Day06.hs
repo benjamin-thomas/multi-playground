@@ -4,7 +4,7 @@
 
 {-# HLINT ignore "Use fromMaybe" #-}
 
-module Day06 where
+module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (foldM, forM_, when)
@@ -93,12 +93,17 @@ rotateGuard = \case
     (0, -1) -> (-1, 0)
     _ -> error "Invalid direction"
 
+firstSlot :: Slots -> Maybe (Int, Int)
+firstSlot (Slots (a, _, _, _, _)) = a
+
 insertSlot :: Slots -> (Int, Int) -> Slots
 insertSlot (Slots (Nothing, Nothing, Nothing, Nothing, Nothing)) pos = Slots (Just pos, Nothing, Nothing, Nothing, Nothing)
-insertSlot (Slots (a, Nothing, Nothing, Nothing, Nothing)) pos = Slots (a, Just pos, Nothing, Nothing, Nothing)
-insertSlot (Slots (a, b, Nothing, Nothing, Nothing)) pos = Slots (a, b, Just pos, Nothing, Nothing)
-insertSlot (Slots (a, b, c, d, Nothing)) pos = Slots (a, b, c, d, Just pos)
-insertSlot (Slots (b, c, d, e, _)) pos = Slots (Just pos, b, c, d, e)
+insertSlot (Slots (Just a, Nothing, Nothing, Nothing, Nothing)) pos = Slots (Just a, Just pos, Nothing, Nothing, Nothing)
+insertSlot (Slots (Just a, Just b, Nothing, Nothing, Nothing)) pos = Slots (Just a, Just b, Just pos, Nothing, Nothing)
+insertSlot (Slots (Just a, Just b, Just c, Nothing, Nothing)) pos = Slots (Just a, Just b, Just c, Just pos, Nothing)
+insertSlot (Slots (Just a, Just b, Just c, Just d, Nothing)) pos = Slots (Just a, Just b, Just c, Just d, Just pos)
+insertSlot (Slots (Just b, Just c, Just d, Just e, Just _)) pos = Slots (Just pos, Just b, Just c, Just d, Just e)
+insertSlot _ _ = error "bad slot operation"
 
 data Outcome = Outcome
     { oExitedMap :: Bool
@@ -129,12 +134,13 @@ update state =
                 bool
                     oldSlots
                     (insertSlot oldSlots newGuardPos)
-                    dirChanged
+                    (dirChanged && Just newGuardPos /= firstSlot oldSlots)
 
-        let cycleDetected = case newSlots of
-                Slots (Just a, Just b, Just c, Just d, Just e) ->
-                    a `elem` [b, c, d, e]
-                _ -> False
+        let cycleDetected =
+                case newSlots of
+                    Slots (Just a, Just b, Just c, Just d, Just e) ->
+                        a `elem` [b, c, d, e]
+                    _ -> False
 
         let newGrid :: Map (Int, Int) Char
             newGrid =
@@ -173,10 +179,10 @@ pluralize n singular plural =
 
 gameLoop :: Maybe VisualMode -> State -> IO Outcome
 gameLoop visualMode state = do
-    putStr "\ESC[2J\ESC[H"
     case visualMode of
         Nothing -> pure ()
         Just (VisualMode{mapIndex, detectedLoopAt}) -> do
+            putStr "\ESC[2J\ESC[H"
             putStrLn $ "Iteration: " ++ show (stIteration state)
             putStrLn $ "Map index: " ++ show mapIndex
             putStrLn $
@@ -190,7 +196,7 @@ gameLoop visualMode state = do
             putStr "Guard slots: " >> print (stGuardSlots state)
             putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
             printGridExn state
-            threadDelay 1000_000
+            threadDelay 10_000
     let (newState, outcome) = update state
     if oCycleDetected outcome
         then
@@ -208,9 +214,10 @@ gameLoop visualMode state = do
 
 main :: IO ()
 main = do
-    let visualMode = Just $ VisualMode{mapIndex = 0, detectedLoopAt = []}
-    example <- readFile "../_inputs/06.example" -- 41
-    -- example <- readFile "../_inputs/06.txt" -- 5404
+    -- let visualMode = Just $ VisualMode{mapIndex = 0, detectedLoopAt = []}
+    let visualMode = Nothing
+    -- example <- readFile "../_inputs/06.example" -- part1=41, part2=6
+    example <- readFile "../_inputs/06.txt" -- part1=5404
     let gridOrig = makeGrid example
 
     let guardPos = maybe (error "Guard not found") id (findGuardPos gridOrig)
@@ -230,9 +237,10 @@ main = do
                 )
                 (Map.toList gridOrig)
 
-    putStrLn "Grids to check:"
+    -- Detected 11 loops at: [(9,7),(8,7),(8,5),(8,3),(8,1),(7,7),(7,6),(7,2),(7,1),(6,3),(5,6)]
+    -- let grids = [((5, 6), Map.insert (5, 6) 'O' gridOrig)]
 
-    -- Detected 11 loops at: [(9,7),(8,7),(8,5),(8,3),(8,1),(7,7),(7,6),(7,2),(7,1),(6,3),(4,3)]
+    putStrLn "Grids to check:"
 
     -- & Map.insert (6, 3) 'O'
     -- & Map.insert (7, 6) 'O'
@@ -251,9 +259,11 @@ main = do
                 , stGridDims = (height, width)
                 }
 
-    total <-
+    let gridsCount = length grids
+    (detectedLoopsCount, mapIterations, _) <-
         foldM
             ( \(tot, idx, visualMode_) (oPos, grid) -> do
+                putStrLn $ show idx <> "/" <> show gridsCount
                 outcome <- gameLoop visualMode_ (initState grid)
                 let newVisualMode = case visualMode_ of
                         Nothing -> Nothing
@@ -275,4 +285,5 @@ main = do
             grids
 
     putStrLn "---"
-    print total
+    putStr "detected loops count: " >> print detectedLoopsCount
+    putStr "map iterations: " >> print mapIterations
