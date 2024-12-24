@@ -4,7 +4,7 @@
 
 {-# HLINT ignore "Use fromMaybe" #-}
 
-module Main where
+module Day06 where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (foldM, forM_, when)
@@ -142,6 +142,10 @@ update state =
                         a `elem` [b, c, d, e]
                     _ -> False
 
+        let cycleDetected2 =
+                let (height, width) = stGridDims state
+                 in stIteration state >= height * width
+
         let newGrid :: Map (Int, Int) Char
             newGrid =
                 oldGrid
@@ -160,7 +164,7 @@ update state =
                 }
             , Outcome
                 { oExitedMap = exitedMap
-                , oCycleDetected = cycleDetected
+                , oCycleDetected = cycleDetected || cycleDetected2
                 }
             )
 
@@ -217,7 +221,7 @@ main = do
     -- let visualMode = Just $ VisualMode{mapIndex = 0, detectedLoopAt = []}
     let visualMode = Nothing
     -- example <- readFile "../_inputs/06.example" -- part1=41, part2=6
-    example <- readFile "../_inputs/06.txt" -- part1=5404
+    example <- readFile "../_inputs/06.txt" -- part1=5404, part2=1984 (53s running time, compiled with -O2)
     let gridOrig = makeGrid example
 
     let guardPos = maybe (error "Guard not found") id (findGuardPos gridOrig)
