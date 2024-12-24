@@ -61,6 +61,7 @@ newtype Slots
         , Maybe (Int, Int)
         , Maybe (Int, Int)
         , Maybe (Int, Int)
+        , Maybe (Int, Int)
         )
     deriving (Show)
 
@@ -93,11 +94,11 @@ rotateGuard = \case
     _ -> error "Invalid direction"
 
 insertSlot :: Slots -> (Int, Int) -> Slots
-insertSlot (Slots (Nothing, Nothing, Nothing, Nothing)) pos = Slots (Just pos, Nothing, Nothing, Nothing)
-insertSlot (Slots (a, Nothing, Nothing, Nothing)) pos = Slots (a, Just pos, Nothing, Nothing)
-insertSlot (Slots (a, b, Nothing, Nothing)) pos = Slots (a, b, Just pos, Nothing)
-insertSlot (Slots (a, b, c, Nothing)) pos = Slots (a, b, c, Just pos)
-insertSlot (Slots (b, c, d, _)) pos = Slots (Just pos, b, c, d)
+insertSlot (Slots (Nothing, Nothing, Nothing, Nothing, Nothing)) pos = Slots (Just pos, Nothing, Nothing, Nothing, Nothing)
+insertSlot (Slots (a, Nothing, Nothing, Nothing, Nothing)) pos = Slots (a, Just pos, Nothing, Nothing, Nothing)
+insertSlot (Slots (a, b, Nothing, Nothing, Nothing)) pos = Slots (a, b, Just pos, Nothing, Nothing)
+insertSlot (Slots (a, b, c, d, Nothing)) pos = Slots (a, b, c, d, Just pos)
+insertSlot (Slots (b, c, d, e, _)) pos = Slots (Just pos, b, c, d, e)
 
 data Outcome = Outcome
     { oExitedMap :: Bool
@@ -130,7 +131,8 @@ update state =
                     dirChanged
 
         let cycleDetected = case newSlots of
-                Slots (Just a, Just b, _, _) -> a == b
+                Slots (Just a, Just b, Just c, Just d, Just e) ->
+                    a `elem` [b, c, d, e]
                 _ -> False
 
         let newGrid :: Map (Int, Int) Char
@@ -189,7 +191,12 @@ main = do
     -- example <- readFile "../_inputs/06.txt" -- 5404
     let grid =
             makeGrid example
-                & Map.insert (6, 3) 'O'
+    -- & Map.insert (6, 3) 'O'
+    -- & Map.insert (7, 6) 'O'
+    -- & Map.insert (7, 7) 'O'
+    -- & Map.insert (8, 1) 'O' -- some doubt here
+    -- & Map.insert (8, 3) 'O'
+    -- & Map.insert (9, 7) 'O'
     let guardPos = maybe (error "Guard not found") id (findGuardPos grid)
     let (height, width) =
             let keys = Map.keys grid
@@ -202,7 +209,7 @@ main = do
                 { stIteration = 0
                 , stGuardPos = guardPos
                 , stGuardDir = (-1, 0)
-                , stGuardSlots = Slots (Nothing, Nothing, Nothing, Nothing)
+                , stGuardSlots = Slots (Nothing, Nothing, Nothing, Nothing, Nothing)
                 , stGrid = grid
                 , stGridDims = (height, width)
                 }
