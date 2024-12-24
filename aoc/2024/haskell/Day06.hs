@@ -55,13 +55,22 @@ printGridExn state = do
             when ((y, x) == guardPos) $ putStr reset
         putStrLn ""
 
+newtype Slots
+    = Slots
+        ( Maybe (Int, Int)
+        , Maybe (Int, Int)
+        , Maybe (Int, Int)
+        , Maybe (Int, Int)
+        )
+    deriving (Show)
+
 data State = State
     { stIteration :: Int
     , stGuardPos :: (Int, Int)
     , stGuardDir :: (Int, Int)
+    , stGuardSlots :: Slots -- circle detection
     , stGrid :: Map (Int, Int) Char
     , stGridDims :: (Int, Int)
-    , stIsDone :: Bool
     }
 
 (.+.) :: (Num a, Num b) => (a, b) -> (a, b) -> (a, b)
@@ -83,19 +92,46 @@ rotateGuard = \case
     (0, -1) -> (-1, 0)
     _ -> error "Invalid direction"
 
-update :: State -> State
+insertSlot :: Slots -> (Int, Int) -> Slots
+insertSlot (Slots (Nothing, Nothing, Nothing, Nothing)) pos = Slots (Just pos, Nothing, Nothing, Nothing)
+insertSlot (Slots (a, Nothing, Nothing, Nothing)) pos = Slots (a, Just pos, Nothing, Nothing)
+insertSlot (Slots (a, b, Nothing, Nothing)) pos = Slots (a, b, Just pos, Nothing)
+insertSlot (Slots (a, b, c, Nothing)) pos = Slots (a, b, c, Just pos)
+insertSlot (Slots (b, c, d, _)) pos = Slots (Just pos, b, c, d)
+
+data Outcome = Outcome
+    { oExitedMap :: Bool
+    , oCycleDetected :: Bool
+    }
+
+update :: State -> (State, Outcome)
 update state =
     do
         let oldGrid = stGrid state
         let oldGuardPos = stGuardPos state
         let oldGuardDir = stGuardDir state
+        let oldSlots = stGuardSlots state
 
-        let (newGuardPos, newGuardDir, isDone) =
+        let (newGuardPos, newGuardDir, dirChanged, exitedMap) =
                 let candidatePos = oldGuardPos .+. oldGuardDir
                  in case Map.lookup candidatePos oldGrid of
-                        Nothing -> (oldGuardPos, oldGuardDir, True)
-                        Just '#' -> (oldGuardPos, rotateGuard oldGuardDir, False)
-                        _ -> (candidatePos, oldGuardDir, False)
+                        Nothing -> (oldGuardPos, oldGuardDir, False, True)
+                        Just c ->
+                            if c `elem` ['#', 'O']
+                                then
+                                    (oldGuardPos, rotateGuard oldGuardDir, True, False)
+                                else
+                                    (candidatePos, oldGuardDir, False, False)
+
+        let newSlots =
+                bool
+                    oldSlots
+                    (insertSlot oldSlots newGuardPos)
+                    dirChanged
+
+        let cycleDetected = case newSlots of
+                Slots (Just a, Just b, _, _) -> a == b
+                _ -> False
 
         let newGrid :: Map (Int, Int) Char
             newGrid =
@@ -106,13 +142,18 @@ update state =
                         id
                         (newGuardPos == oldGuardPos)
 
-        state
-            { stIteration = stIteration state + 1
-            , stGuardPos = newGuardPos
-            , stGuardDir = newGuardDir
-            , stGrid = newGrid
-            , stIsDone = isDone
-            }
+        ( state
+                { stIteration = stIteration state + 1
+                , stGuardPos = newGuardPos
+                , stGuardDir = newGuardDir
+                , stGuardSlots = newSlots
+                , stGrid = newGrid
+                }
+            , Outcome
+                { oExitedMap = exitedMap
+                , oCycleDetected = cycleDetected
+                }
+            )
 
 countTrail :: Map k Char -> Int
 countTrail = Map.foldl' (\tot v -> tot + (if v == 'X' then 1 else 0)) 0
@@ -126,22 +167,29 @@ gameLoop visualMode state = do
         putStrLn $ "Iteration: " ++ show (stIteration state)
         putStrLn ""
         putStr "Guard is at pos: " >> print (stGuardPos state)
+        putStr "Guard slots: " >> print (stGuardSlots state)
         putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
         printGridExn state
-        threadDelay 70_000
-    let newState = update state
-    if not (stIsDone newState)
+        threadDelay 100_000
+    let (newState, outcome) = update state
+    if oCycleDetected outcome
         then
-            gameLoop visualMode newState
+            putStr "\nCycle detected at trail count of: " >> print (countTrail (stGrid state) + 1)
         else
-            putStr "\nExiting with trail count of: " >> print (countTrail (stGrid state) + 1)
+            if oExitedMap outcome
+                then
+                    putStr "\nExiting with trail count of: " >> print (countTrail (stGrid state) + 1)
+                else
+                    gameLoop visualMode newState
 
 main :: IO ()
 main = do
-    let visualMode = VisualMode False
-    -- example <- readFile "../_inputs/06.example" -- 41
-    example <- readFile "../_inputs/06.txt" -- 5404
-    let grid = makeGrid example
+    let visualMode = VisualMode True
+    example <- readFile "../_inputs/06.example" -- 41
+    -- example <- readFile "../_inputs/06.txt" -- 5404
+    let grid =
+            makeGrid example
+                & Map.insert (6, 3) 'O'
     let guardPos = maybe (error "Guard not found") id (findGuardPos grid)
     let (height, width) =
             let keys = Map.keys grid
@@ -154,9 +202,9 @@ main = do
                 { stIteration = 0
                 , stGuardPos = guardPos
                 , stGuardDir = (-1, 0)
+                , stGuardSlots = Slots (Nothing, Nothing, Nothing, Nothing)
                 , stGrid = grid
                 , stGridDims = (height, width)
-                , stIsDone = False
                 }
 
     gameLoop visualMode initState
