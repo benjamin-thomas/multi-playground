@@ -1,3 +1,8 @@
 (executables
- (names day03)
- (libraries str))
+ (names day03 day06)
+ (libraries str unix))
+
+; (env
+;  (dev
+;   (flags
+;    (:standard -warn-error -A))))
