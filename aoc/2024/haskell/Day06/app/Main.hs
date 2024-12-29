@@ -1,37 +1,16 @@
-#!/usr/bin/env cabal
-
-{-# HLINT ignore "Use fromMaybe" #-}
-{-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# OPTIONS_GHC -Wall -Wextra #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-{-
-Run the optimized version with:
-  cabal run ./Day06.hs --ghc-options "-main-is Day06 -O2"
+{-# HLINT ignore "Use fromMaybe" #-}
 
-Debug perf problems with:
-  cabal run ./Day06.hs --ghc-options "-main-is Day06 -O2 -prof -fprof-auto -rtsopts -with-rtsopts=-P"
-
-Otherwise:
-  ghcid ./Day06.hs -T :main
-
- -}
-
-{- cabal:
-build-depends: base, containers, transformers
--}
-
-module Day06 where
+module Main where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (foldM, forM_, when)
-import Control.Monad.Trans.State qualified as TState
 import Data.Bool (bool)
 import Data.Coerce (coerce)
-import Data.Map (Map)
-import Data.Map qualified as Map
+import Data.HashMap.Strict (HashMap)
+import qualified Data.HashMap.Strict as HashMap
 import System.IO (BufferMode (..), hSetBuffering, hSetEcho, stdin)
 
 yellow :: String
@@ -55,22 +34,22 @@ hideCursor = putStr "\ESC[?25l"
 showCursor :: IO ()
 showCursor = putStr "\ESC[?25h"
 
-makeGrid :: String -> Map (Int, Int) Char
+makeGrid :: String -> HashMap (Int, Int) Char
 makeGrid input =
-    Map.fromList $
+    HashMap.fromList $
         [ ((y, x), c)
         | (y, line) <- zip [0 ..] (lines input)
         , (x, c) <- zip [0 ..] line
         ]
 
-findGuardPos :: Map (Int, Int) Char -> Maybe (Int, Int)
+findGuardPos :: HashMap (Int, Int) Char -> Maybe (Int, Int)
 findGuardPos =
-    Map.foldlWithKey'
+    HashMap.foldlWithKey'
         (\acc coord v -> if v == '^' then Just coord else acc)
         Nothing
 
-lookupExn :: Map (Int, Int) Char -> (Int, Int) -> Char
-lookupExn grid (y, x) = maybe (error "Out of bounds") id $ Map.lookup (y, x) grid
+lookupExn :: HashMap (Int, Int) Char -> (Int, Int) -> Char
+lookupExn grid (y, x) = maybe (error "Out of bounds") id $ HashMap.lookup (y, x) grid
 
 printGridExn :: State -> IO ()
 printGridExn state = do
@@ -102,7 +81,7 @@ data State = State
     , stGuardPos :: (Int, Int)
     , stGuardDir :: (Int, Int)
     , stGuardSlots :: Slots -- circle detection
-    , stGrid :: Map (Int, Int) Char
+    , stGrid :: HashMap (Int, Int) Char
     , stGridDims :: (Int, Int)
     }
 
@@ -153,7 +132,7 @@ update state =
 
         let (newGuardPos, newGuardDir, dirChanged, exitedMap) =
                 let candidatePos = oldGuardPos .+. oldGuardDir
-                 in case Map.lookup candidatePos oldGrid of
+                 in case HashMap.lookup candidatePos oldGrid of
                         Nothing -> (oldGuardPos, oldGuardDir, False, True)
                         Just c ->
                             if c `elem` ['#', 'O']
@@ -188,6 +167,13 @@ update state =
         --                 id
         --                 (newGuardPos == oldGuardPos)
 
+        let newGrid =
+                if newGuardPos /= oldGuardPos
+                    then
+                        HashMap.insert newGuardPos (guardIcon newGuardDir) $
+                            HashMap.insert oldGuardPos 'X' oldGrid
+                    else HashMap.insert newGuardPos (guardIcon newGuardDir) oldGrid
+
         -- ~51s
         -- let newGrid =
         --         let updates =
@@ -198,14 +184,7 @@ update state =
         --                         ]
         --                     else
         --                         [(newGuardPos, guardIcon newGuardDir)]
-        --          in Map.union (Map.fromList updates) oldGrid
-
-        -- ~41s
-        let newGrid =
-                flip TState.execState oldGrid $ do
-                    TState.modify (Map.alter (const $ Just $ guardIcon newGuardDir) newGuardPos)
-                    when (newGuardPos /= oldGuardPos) $
-                        TState.modify (Map.alter (const $ Just 'X') oldGuardPos)
+        --          in HashMap.union (HashMap.fromList updates) oldGrid
 
         ( state
                 { stIteration = stIteration state + 1
@@ -220,11 +199,11 @@ update state =
                 }
             )
 
-countTrail :: Map k Char -> Int
-countTrail = Map.foldl' (\tot v -> tot + (if v == 'X' then 1 else 0)) 0
+countTrail :: HashMap k Char -> Int
+countTrail = HashMap.foldl' (\tot v -> tot + (if v == 'X' then 1 else 0)) 0
 
-trailPositions :: Map (Int, Int) Char -> [(Int, Int)]
-trailPositions = Map.keys . Map.filter (== 'X')
+trailPositions :: HashMap (Int, Int) Char -> [(Int, Int)]
+trailPositions = HashMap.keys . HashMap.filter (== 'X')
 
 data AdvanceMode
     = SpaceBar
@@ -247,27 +226,33 @@ gameLoop :: Maybe VisualMode -> WantTrailPositions -> State -> IO (Outcome, Mayb
 gameLoop visualMode wantTrailPositions state = do
     case visualMode of
         Nothing -> pure ()
-        Just (VisualMode{mapIndex, detectedLoopAt, advanceMode}) -> do
-            clearFromCursor
-            putStrLn $ "Iteration: " ++ show (stIteration state)
-            putStrLn $ "Map index: " ++ show mapIndex
-            putStrLn $
-                mconcat
-                    [ "Detected "
-                    , pluralize (length detectedLoopAt) "loop" "loops"
-                    , " at: " <> show detectedLoopAt
-                    ]
-            putStrLn ""
-            putStr "Guard is at pos: " >> print (stGuardPos state)
-            putStr "Guard slots: " >> print (stGuardSlots state)
-            putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
-            printGridExn state
-            case advanceMode of
-                SpaceBar -> do
-                    c <- getChar
-                    print c
-                SleepMs ms ->
-                    threadDelay $ ms * 1000
+        Just
+            ( VisualMode
+                    { mapIndex = mapIndex'
+                    , detectedLoopAt = detectedLoopAt'
+                    , advanceMode = advanceMode'
+                    }
+                ) -> do
+                clearFromCursor
+                putStrLn $ "Iteration: " ++ show (stIteration state)
+                putStrLn $ "Map index: " ++ show mapIndex'
+                putStrLn $
+                    mconcat
+                        [ "Detected "
+                        , pluralize (length detectedLoopAt') "loop" "loops"
+                        , " at: " <> show detectedLoopAt'
+                        ]
+                putStrLn ""
+                putStr "Guard is at pos: " >> print (stGuardPos state)
+                putStr "Guard slots: " >> print (stGuardSlots state)
+                putStr "Trail count: " >> print (countTrail $ stGrid state) >> putStrLn ""
+                printGridExn state
+                case advanceMode' of
+                    SpaceBar -> do
+                        c <- getChar
+                        print c
+                    SleepMs ms ->
+                        threadDelay $ ms * 1000
     let (newState, outcome) = update state
     let trailPos =
             bool
@@ -275,19 +260,33 @@ gameLoop visualMode wantTrailPositions state = do
                 (Just $ trailPositions $ stGrid state)
                 (coerce wantTrailPositions)
     if oCycleDetected outcome
-        then
-            putStr "\nCycle detected at trail count of: "
-                >> print (countTrail (stGrid state) + 1)
-                >> pure (outcome, trailPos)
+        then do
+            case visualMode of
+                Nothing -> pure ()
+                Just _ -> do
+                    putStr "\nCycle detected at trail count of: "
+                        >> print (countTrail (stGrid state) + 1)
+
+            pure (outcome, trailPos)
         else
             if oExitedMap outcome
-                then
-                    putStr "\nExiting with trail count of: "
-                        >> print (countTrail (stGrid state) + 1)
-                        >> pure (outcome, trailPos)
+                then do
+                    case visualMode of
+                        Nothing -> pure ()
+                        Just _ -> do
+                            putStr "\nExiting with trail count of: "
+                                >> print (countTrail (stGrid state) + 1)
+                    pure (outcome, trailPos)
                 else
                     gameLoop visualMode wantTrailPositions newState
 
+{-
+
+time cabal run --ghc-options "-O2"
+
+-- 53s with a Map down to 17s with a HashMap
+
+ -}
 main :: IO ()
 main = do
     -- let visualMode =
@@ -310,12 +309,12 @@ main = do
 
     -- let visualMode = Nothing
     -- example <- readFile "../_inputs/06.example" -- part1=41, part2=6
-    example <- readFile "../_inputs/06.example" -- part1=5404, part2=1984 (53s running time, compiled with -O2)
+    example <- readFile "../../_inputs/06.txt" -- part1=5404, part2=1984 (53s running time, compiled with -O2)
     let gridOrig = makeGrid example
 
     let guardPos = maybe (error "Guard not found") id (findGuardPos gridOrig)
     let (height, width) =
-            let keys = Map.keys gridOrig
+            let keys = HashMap.keys gridOrig
              in ( maximum $ fst <$> keys
                 , maximum $ snd <$> keys
                 )
@@ -337,7 +336,7 @@ main = do
     let grids =
             fmap
                 ( \pos ->
-                    (pos, Map.insert pos 'O' gridOrig)
+                    (pos, HashMap.insert pos 'O' gridOrig)
                 )
                 trailPos
 
@@ -347,7 +346,10 @@ main = do
     (detectedLoopsCount, mapIterations, _) <-
         foldM
             ( \(tot, idx, visualMode_) (oPos, grid) -> do
-                putStrLn $ show idx <> "/" <> show gridsCount
+                case visualMode_ of
+                    Nothing -> pure ()
+                    Just _ ->
+                        putStrLn $ show idx <> "/" <> show gridsCount
                 (outcome, _) <- gameLoop visualMode_ (WantTrailPositions False) (initState grid)
                 let newVisualMode = case visualMode_ of
                         Nothing -> Nothing
@@ -368,9 +370,12 @@ main = do
             ((0, 0, visualMode) :: (Int, Int, Maybe VisualMode))
             grids
 
-    putStrLn "---"
-    putStr "detected loops count: " >> print detectedLoopsCount
-    putStr "map iterations: " >> print mapIterations
+    case visualMode of
+        Nothing -> pure ()
+        Just _ -> do
+            putStrLn "---"
+            putStr "detected loops count: " >> print detectedLoopsCount
+            putStr "map iterations: " >> print mapIterations
 
     case visualMode of
         Nothing -> pure ()

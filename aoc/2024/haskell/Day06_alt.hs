@@ -8,30 +8,39 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 {-
+NOTE: although I could "execute" the file due to the shebang, "cabal run" is
+      still required due to the injection of the extra ghc options.
+      Also, having that shebang seems to make the vscode extension happy.
+
 Run the optimized version with:
-  cabal run ./Day06.hs --ghc-options "-main-is Day06 -O2"
+  cabal run ./Day06_alt.hs --ghc-options "-main-is Day06_alt -O2"
 
 Debug perf problems with:
-  cabal run ./Day06.hs --ghc-options "-main-is Day06 -O2 -prof -fprof-auto -rtsopts -with-rtsopts=-P"
+  cabal run ./Day06_alt.hs --ghc-options "-main-is Day06_alt -O2 -prof -fprof-auto -rtsopts -with-rtsopts=-P"
 
-Otherwise:
-  ghcid ./Day06.hs -T :main
+Develop with:
+  I couldn't find a way to make ghcid work with that setup, so:
 
+  Terminal 1:
+    cabal repl ./Day06_alt.hs
+
+  Terminal 2:
+    find *.hs | entr tmux send-keys -t aoc:0 ':cmd return $ unlines [":!clear",":reload"]' Enter
  -}
 
 {- cabal:
-build-depends: base, containers, transformers
+build-depends: base, containers, transformers, vector
 -}
 
-module Day06 where
+module Day06_alt where
 
 import Control.Concurrent (threadDelay)
 import Control.Monad (foldM, forM_, when)
-import Control.Monad.Trans.State qualified as TState
 import Data.Bool (bool)
 import Data.Coerce (coerce)
 import Data.Map (Map)
 import Data.Map qualified as Map
+import Data.Vector qualified as V
 import System.IO (BufferMode (..), hSetBuffering, hSetEcho, stdin)
 
 yellow :: String
@@ -189,23 +198,18 @@ update state =
         --                 (newGuardPos == oldGuardPos)
 
         -- ~51s
-        -- let newGrid =
-        --         let updates =
-        --                 if newGuardPos /= oldGuardPos
-        --                     then
-        --                         [ (newGuardPos, guardIcon newGuardDir)
-        --                         , (oldGuardPos, 'X')
-        --                         ]
-        --                     else
-        --                         [(newGuardPos, guardIcon newGuardDir)]
-        --          in Map.union (Map.fromList updates) oldGrid
+        let newGrid =
+                let updates =
+                        if newGuardPos /= oldGuardPos
+                            then
+                                [ (newGuardPos, guardIcon newGuardDir)
+                                , (oldGuardPos, 'X')
+                                ]
+                            else
+                                [(newGuardPos, guardIcon newGuardDir)]
+                 in Map.union (Map.fromList updates) oldGrid
 
         -- ~41s
-        let newGrid =
-                flip TState.execState oldGrid $ do
-                    TState.modify (Map.alter (const $ Just $ guardIcon newGuardDir) newGuardPos)
-                    when (newGuardPos /= oldGuardPos) $
-                        TState.modify (Map.alter (const $ Just 'X') oldGuardPos)
 
         ( state
                 { stIteration = stIteration state + 1
@@ -375,3 +379,5 @@ main = do
     case visualMode of
         Nothing -> pure ()
         Just _ -> showCursor
+
+    putStrLn "I am done2!"

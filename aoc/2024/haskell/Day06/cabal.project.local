@@ -1,0 +1,4 @@
+-- https://github.com/haskell/cabal/issues/5930#issuecomment-1477130786
+-- cabal run Day06 -- +RTS -p
+profiling: True
+profiling-detail: all-functions

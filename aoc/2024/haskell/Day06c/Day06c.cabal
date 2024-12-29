@@ -1,0 +1,38 @@
+cabal-version:   3.0
+name:            Day06-c
+version:         0.1.0.0
+license:         NONE
+build-type:      Simple
+
+common warnings
+    ghc-options: -Wall
+
+executable v1
+    hs-source-dirs:   v1
+    import:           warnings
+    main-is:          Main.hs
+    default-language: Haskell2010
+
+    build-depends:    base ^>=4.17.2.1
+                    , linear
+                    , array
+
+executable v2
+    hs-source-dirs:   v2
+    import:           warnings
+    main-is:          Main.hs
+    default-language: Haskell2010
+
+    build-depends:    base ^>=4.17.2.1
+                    , linear
+                    , array
+
+executable v3
+    hs-source-dirs:   v3
+    import:           warnings
+    main-is:          Main.hs
+    default-language: Haskell2010
+
+    build-depends:    base ^>=4.17.2.1
+                    , linear
+                    , array
