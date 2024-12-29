@@ -1,0 +1,3 @@
+# https://zed0.co.uk/clang-format-configurator/
+BasedOnStyle: Google
+ReflowComments: false

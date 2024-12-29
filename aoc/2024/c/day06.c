@@ -1,0 +1,365 @@
+#include <ncurses.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+// Color definitions for different message types
+#define ANSI_RED "\033[1;31m"
+#define ANSI_YELLOW "\033[1;33m"
+#define ANSI_BLUE "\033[1;34m"
+#define ANSI_GRAY "\033[1;90m"
+#define ANSI_RESET "\033[0m"
+
+// Helper to check if we're outputting to a terminal
+#define is_terminal() (isatty(STDERR_FILENO))
+
+#define MILLI_SEC 1000
+
+/*
+# vscode's terminal (click on errors)
+rg --files | entr -rc bash -c 'gcc -g -Wall -Wextra -pedantic day06.c -o /tmp/tmp && /tmp/tmp'
+
+# gnome-terminal (better shows segfaults but buggy with vscode)
+rg --files | entr -rc bash -c 'gcc -g -fsanitize=address -Wall -Wextra -pedantic day06.c -o /tmp/tmp && /tmp/tmp'
+
+gcc -g -fsanitize=address -Wall -Wextra -pedantic day06.c -o /tmp/tmp && /tmp/tmp
+gcc -O2 -Wall -pedantic day06.c -o /tmp/tmp && /tmp/tmp
+
+# valgrind gives me the line numbers!! Much more useful than sanitize=address for me!
+valgrind --leak-check=full --show-leak-kinds=all /tmp/tmp
+*/
+
+// The new die macro passes all arguments directly to fprintf
+// Enhanced error reporting with file and line information
+#define die(fmt, ...)                                                       \
+  do {                                                                      \
+    if (is_terminal()) {                                                    \
+      fprintf(stderr, "%s:%d:1: " ANSI_RED "DIED" ANSI_RESET " in %s() - ", \
+              __FILE__, __LINE__, __func__);                                \
+    } else {                                                                \
+      fprintf(stderr, "%s:%d:1: DIED in %s() - ", __FILE__, __LINE__,       \
+              __func__);                                                    \
+    }                                                                       \
+    fprintf(stderr, fmt, ##__VA_ARGS__);                                    \
+    fprintf(stderr, "\n");                                                  \
+    ret = 1;                                                                \
+    goto cleanup;                                                           \
+  } while (0)
+
+#define fatal(fmt, ...)                                                        \
+  do {                                                                         \
+    if (is_terminal()) {                                                       \
+      fprintf(stderr, "%s:%d:1 [%s]: " ANSI_RED "FATAL" ANSI_RESET " - ",      \
+              __FILE__, __LINE__, __func__);                                   \
+    } else {                                                                   \
+      fprintf(stderr, "%s:%d:1 [%s]: FATAL - ", __FILE__, __LINE__, __func__); \
+    }                                                                          \
+    fprintf(stderr, fmt, ##__VA_ARGS__);                                       \
+    fprintf(stderr, "\n");                                                     \
+    exit(1);                                                                   \
+  } while (0)
+
+// Warning macro for non-fatal issues
+#define warn(fmt, ...)                                                    \
+  do {                                                                    \
+    if (is_terminal()) {                                                  \
+      fprintf(stderr, "%s:%d:1: " ANSI_YELLOW "WARNING" ANSI_RESET " - ", \
+              __FILE__, __LINE__);                                        \
+    } else {                                                              \
+      fprintf(stderr, "%s:%d:1: WARNING - ", __FILE__, __LINE__);         \
+    }                                                                     \
+    fprintf(stderr, fmt, ##__VA_ARGS__);                                  \
+    fprintf(stderr, "\n");                                                \
+  } while (0)
+
+// Info macro for debug/status messages
+#define info(fmt, ...)                                   \
+  do {                                                   \
+    if (is_terminal()) {                                 \
+      fprintf(stderr, ANSI_BLUE "INFO" ANSI_RESET ": "); \
+    } else {                                             \
+      fprintf(stderr, "INFO: ");                         \
+    }                                                    \
+    fprintf(stderr, fmt, ##__VA_ARGS__);                 \
+    fprintf(stderr, "\n");                               \
+  } while (0)
+
+typedef struct {
+  int y;
+  int x;
+} Point;
+
+typedef struct {
+  int pos;
+  Point dir;
+} Guard;
+
+Point rotate(const Point p) {
+  const Point point = {.y = p.x, .x = -p.y};
+  return point;
+}
+
+char guard_icon(const Point dir) {
+  if (dir.y == -1 && dir.x == 0) return '^';
+  if (dir.y == 0 && dir.x == 1) return '>';
+  if (dir.y == 1 && dir.x == 0) return 'v';
+  if (dir.y == 0 && dir.x == -1) return '<';
+  fatal("Impossible");
+}
+
+int update(int dim_y, int dim_x, char *grid, Guard *guard, int iter,
+           int *loop_cnt) {
+  int keep_running = 1;
+
+  int next_pos;
+  int off_grid = 0;
+  if (guard->dir.y == -1 && guard->dir.x == 0) {
+    next_pos = guard->pos - dim_x;
+  } else if (guard->dir.y == 0 && guard->dir.x == 1) {
+    next_pos = guard->pos + 1;
+    if (next_pos % dim_x == 0)
+      off_grid =
+          1;  // 29=>30 means we would "jump" to the next row (30%10 == 0)
+  } else if (guard->dir.y == 1 && guard->dir.x == 0) {
+    next_pos = guard->pos + dim_x;
+  } else if (guard->dir.y == 0 && guard->dir.x == -1) {
+    next_pos = guard->pos - 1;
+    if (next_pos % dim_x == dim_x - 1)
+      off_grid =
+          1;  // 20=>19 means we would "jump" to the prior row (19%10 == 9)
+  } else {
+    fatal("Impossible");
+  }
+
+  int loop_detected = iter > dim_y * dim_x;
+
+  if (loop_detected) {
+    *loop_cnt += 1;
+    return 0;  // stop the loop
+  }
+
+  if (next_pos < 0 || next_pos >= dim_x * dim_y || off_grid) {
+    grid[guard->pos] = 'X';
+    return 0;  // stop the loop
+  }
+
+  if (grid[next_pos] == '#' || grid[next_pos] == 'O') {
+    guard->dir = rotate(guard->dir);
+    grid[guard->pos] = guard_icon(guard->dir);
+  } else {
+    grid[guard->pos] = 'X';
+    grid[next_pos] = guard_icon(guard->dir);
+    guard->pos = next_pos;
+  }
+
+  return keep_running;
+}
+
+void display(const char *grid, const int dim_x, const int dim_y,
+             const Guard guard, const int iter, const int loop_cnt) {
+  printf("\033[H\033[J");
+  printf("Iteration: %d\n", iter);
+  // ReSharper disable once CppDFANotInitializedField
+  printf("Guard    : pos=%d, dir=(%d,%d)\n", guard.pos, guard.dir.y,
+         guard.dir.x);
+  printf("Loop count: %d\n", loop_cnt);
+  printf("\n");
+  for (int y = 0; y < dim_y; y++) {
+    for (int x = 0; x < dim_x; x++) {
+      const char c = grid[x + y * dim_x];
+      if (c == 'X') printf(ANSI_GRAY);
+      printf("%c", c);
+      if (c == 'X') printf(ANSI_RESET);
+    }
+    printf("\n");
+  }
+  printf("\n");
+  fflush(stdout);
+}
+
+int find_guard(const int dim_y, const int dim_x, const char *grid,
+               int *pos_out) {
+  for (int y = 0; y < dim_y; y++) {
+    for (int x = 0; x < dim_x; x++) {
+      if (grid[x + y * dim_x] == '^') {
+        *pos_out = x + y * dim_x;
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+int part1(const int dim_y, const int dim_x, char *grid, Guard guard,
+          int *loop_cnt, int is_interactive) {
+  int iter = 0;
+  do {
+    if (is_interactive) {
+      char buffer[1024];
+      setvbuf(stdout, buffer, _IOFBF, sizeof(buffer));
+
+      display(grid, dim_x, dim_y, guard, iter, *loop_cnt);
+      // fgetc(stdin);
+      usleep(10 * MILLI_SEC);
+    }
+    iter++;
+  } while (update(dim_y, dim_x, grid, &guard, iter, loop_cnt));
+
+  // ReSharper disable once CppDFAUnusedValue
+  if (is_interactive) display(grid, dim_x, dim_y, guard, iter, *loop_cnt);
+
+  setvbuf(stdout, NULL, _IONBF, 0);
+
+  int trail_count = 0;
+  for (int y = 0; y < dim_y; y++)
+    for (int x = 0; x < dim_x; x++)
+      if (grid[x + y * dim_x] == 'X') trail_count++;
+
+  return trail_count;
+}
+
+int *part1_coords(const int dim_y, const int dim_x, char *grid, Guard guard,
+                  int *count) {
+  int capacity = 10;  // Initial capacity
+  int size = 0;       // Number of elements added
+  int *coords = malloc(capacity * sizeof(int));
+  int iter = 0;
+  int loop_cnt = 0;
+  if (!coords) fatal("Failed to allocate memory");
+
+  do {
+  } while (update(dim_y, dim_x, grid, &guard, iter++, &loop_cnt));
+
+  for (int y = 0; y < dim_y; y++) {
+    for (int x = 0; x < dim_x; x++) {
+      if (grid[x + y * dim_x] == 'X') {
+        if (size >= capacity) {
+          capacity *= 2;  // Double the capacity
+          coords = realloc(coords, capacity * sizeof(int));
+          if (!coords) fatal("Failed to reallocate memory");
+        }
+        coords[size++] = x + y * dim_x;
+      }
+    }
+  }
+
+  *count = size;  // Output the number of elements
+  return coords;  // Caller must free the array
+}
+
+void create_grid_or_die(const char *filename, int *dim_y_out, int *dim_x_out,
+                        char **grid_out, Guard *guard_out) {
+  FILE *file = NULL;
+  file = fopen(filename, "r");
+  if (!file) fatal("Failed to open file: %s", filename);
+
+  info("File opened: %s", filename);
+
+  char *line = NULL;
+  size_t len = 0;
+
+  const ssize_t read = getline(&line, &len, file);
+  if (read == -1) fatal("Failed to read first line");
+
+  *dim_x_out = (int)read - 1;  // minus '\n'
+  *dim_y_out = 1;
+
+  while (getline(&line, &len, file) != -1) (*dim_y_out)++;
+
+  rewind(file);
+
+  *grid_out = malloc(*dim_y_out * *dim_x_out * sizeof(char));
+  if (!*grid_out) fatal("Failed to allocate grid");
+  {
+    int y = 0;
+    while (getline(&line, &len, file) != -1) {
+      for (int x = 0; x < *dim_x_out; x++) {
+        (*grid_out)[x + y * *dim_x_out] = line[x];
+      }
+      y++;
+    }
+  }
+
+  free(line);
+  fclose(file);
+
+  int guard_pos;
+  if (!find_guard(*dim_y_out, *dim_x_out, *grid_out, &guard_pos)) {
+    fatal("guard position not found!");
+  }
+
+  guard_out->pos = guard_pos;
+  const Point dir = {.y = -1, .x = 0};
+  guard_out->dir = dir;
+}
+
+void run_parts(const char *filename) {
+  int is_interactive;
+  {
+    const char *env = getenv("INTERACTIVE");
+    is_interactive = env != NULL && *env == '1';
+  }
+
+  int dim_y;
+  int dim_x;
+  char *grid;
+  Guard guard;
+  create_grid_or_die(filename, &dim_y, &dim_x, &grid, &guard);
+  info("Grid ready (part1)!");
+  int loop_cnt = 0;
+  const int trail_count =
+      part1(dim_y, dim_x, grid, guard, &loop_cnt, is_interactive);
+  info("Part1: %d\n", trail_count);
+  free(grid);
+
+  int dim_y2;
+  int dim_x2;
+  char *grid2;
+  Guard guard2;
+  create_grid_or_die(filename, &dim_y2, &dim_x2, &grid2, &guard2);
+  info("Grid ready (part2)!");
+  int count = 0;
+  int loop_cnt2 = 0;
+  int *trails = part1_coords(dim_y2, dim_x2, grid2, guard2, &count);
+
+  int total_trails = 0;
+  for (int i = 0; i < count; i++) {
+    for (int y = 0; y < dim_y2; y++) {
+      for (int x = 0; x < dim_x2; x++) {
+        if (grid2[x + y * dim_x2] == 'X') {
+          grid2[x + y * dim_x2] = '.';
+        }
+      }
+    }
+
+    const int coord = trails[i];
+    grid2[coord] = 'O';
+    total_trails +=
+        part1(dim_y, dim_x, grid, guard, &loop_cnt2, is_interactive);
+
+    // reset
+    grid2[coord] = '.';
+  }
+  info("Part2: (trails: %d, loops: %d)\n", count, loop_cnt2);
+  free(trails);
+  free(grid2);
+}
+
+/*
+
+Quite messy! I'm leaking memory (run with valgrind), I think due to the "dynamic"
+array allocations I'm probably not handling properly.
+
+The cycle detection is brain dead, and still, I got great performance (500ms) comparing Haskell and OCaml.
+
+Obviously, I'm doing a lot of mutation...
+
+To improve the cycle detection, I'd need to work with a Set of Structs (coords+direction), but I'm not ready
+to look into that now, I'm happy with this C exploration.
+
+ */
+int main() {
+  // run_parts("./test.example");
+  run_parts("../_inputs/06.example");  // part1=41, part2=6
+  run_parts("../_inputs/06.txt");      // part1=5404, part2=1984
+}
