@@ -31,3 +31,10 @@ rm -r ./build && TARGET=prod cmake -S . -B ./build && cmake --build ./build
 
 - ctrl+shift+b: build the project
 - f5: debug the current file
+
+## Command line tips
+
+- continuously build (terminal 1):
+  - rg --files | entr -c cmake --build ./build
+- continuously lint (terminal 2):
+  - rg --files -t c | entr -c clang-tidy /_
