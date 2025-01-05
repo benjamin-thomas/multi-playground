@@ -1,3 +1,5 @@
+// NOLINT
+
 #include <ncurses.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -358,7 +360,7 @@ To improve the cycle detection, I'd need to work with a Set of Structs (coords+d
 to look into that now, I'm happy with this C exploration.
 
  */
-int main() {
+int main(void) {
   // run_parts("./test.example");
   run_parts("../_inputs/06.example");  // part1=41, part2=6
   run_parts("../_inputs/06.txt");      // part1=5404, part2=1984
