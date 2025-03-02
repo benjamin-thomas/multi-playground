@@ -27,16 +27,15 @@ let remove_leading_zeros str =
   String.sub str start_at (len - start_at)
 ;;
 
-exception Break
-
 let remove_leading_zeros2 str =
+  let exception Break in
   let len = String.length str in
   let idx =
     let idx = ref 0 in
     try
       for i = 0 to len - 1 do
         if str.[i] <> '0' then
-          raise Break
+          raise_notrace Break
         else
           idx := i + 1
       done;
