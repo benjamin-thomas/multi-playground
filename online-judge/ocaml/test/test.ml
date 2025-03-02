@@ -48,6 +48,18 @@ module T003 = struct
   ;;
 end
 
+module T004 = struct
+  module M = Lib.Ex_004
+
+  let solution () =
+    let assert_eq = Alcotest.(check int) "" in
+    assert_eq 14 @@ M.solution [ "123"; "456"; "789" ];
+    assert_eq 4 @@ M.solution [ "123456789" ];
+    assert_eq 10 @@ M.solution [ "14329"; "7568" ];
+    ()
+  ;;
+end
+
 let () =
   let open Alcotest in
   run
@@ -58,5 +70,6 @@ let () =
         ; ("Strip zeros", `Quick, T003.remove_leading_zeros)
         ; ("Solution", `Quick, T003.solution)
         ] )
+    ; ("Ex004", [ ("Solution", `Quick, T004.solution) ])
     ]
 ;;
