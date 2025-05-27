@@ -29,6 +29,22 @@ let combs3 lst =
   let* () = guard (i < j && j < k) in
   pure [x; y; z]
 
+let combs3b lst =
+  let lst2 = (List.mapi (fun i n -> (i, n)) lst) in
+  List.concat_map
+    (fun (i, x) ->
+       List.concat_map
+         (fun (j, y) ->
+            List.concat_map
+              (fun (k, z) ->
+                 if i < j && j < k then [[x; y; z]] else []
+              )
+              lst2
+         )
+         lst2
+    )
+    lst2
+
 let solution str =
   str
   |> to_char_list

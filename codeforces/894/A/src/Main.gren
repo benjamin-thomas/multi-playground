@@ -1,0 +1,76 @@
+module Main exposing (main)
+
+import Init
+import Node exposing (Environment)
+import Stream
+import Task
+
+
+main : Node.SimpleProgram a
+main =
+    Node.defineSimpleProgram init
+
+
+example : String
+example = "QQAAQASGAYAAAAKAKAQIQEAQAIAAIAQQQQQ" -- spell: disable-line
+
+combs3 : Array a -> Array (Array a)
+combs3 lst =
+    let lst2 = Array.indexedMap (\idx val -> {idx = idx, val = val}) lst in
+    Array.mapAndFlatten
+        (\{idx = i, val = x} ->
+        Array.mapAndFlatten
+            (\{idx = j, val = y} ->
+                Array.mapAndFlatten
+                    (\{idx = k, val = z} ->
+                        if i < j && j < k
+                        then [[x, y, z]]
+                        else []
+                    )
+                    lst2
+            )
+            lst2
+        )
+        lst2
+
+combs3b : Array a -> Array (Array a)
+combs3b lst =
+    let lst2 = Array.indexedMap (\idx val -> {idx = idx, val = val}) lst in
+    lst2 |> Array.mapAndFlatten (\{idx = i, val = x} ->
+    lst2 |> Array.mapAndFlatten (\{idx = j, val = y} ->
+    lst2 |> Array.mapAndFlatten (\{idx = k, val = z} ->
+      if i < j && j < k
+      then [[x, y, z]]
+      else []
+    )))
+
+{-| Just playing, trying to reduce the visual clutter.
+ -}
+combs3c : Array a -> Array (Array a)
+combs3c lst =
+    let into f = Array.flatten <| Array.indexedMap (\idx -> f idx) lst in
+    into (\i x ->
+        into (\j y ->
+            into (\k z ->
+                if i < j && j < k then
+                    [[x, y, z]]
+                else
+                    []
+            )
+        )
+    )
+
+
+
+solution : String -> Int
+solution str =
+    str
+    |> String.toArray
+    |> combs3c
+    |> Array.foldl (\xs acc -> if xs == ['Q', 'A', 'Q'] then acc + 1 else acc) 0
+
+init : Environment -> Init.Task (Cmd a)
+init env =
+    Stream.writeLineAsBytes (String.fromInt (solution example)) env.stdout
+        |> Task.onError (\_ -> Task.succeed env.stdout)
+        |> Node.endSimpleProgram
