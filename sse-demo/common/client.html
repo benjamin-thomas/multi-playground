@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSE Disconnection Demo Client</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .server-section {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 20px 0;
+            padding: 20px;
+        }
+
+        .server-section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .controls {
+            margin: 15px 0;
+        }
+
+        .controls button {
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+
+        .controls button:hover {
+            background: #f8f9fa;
+        }
+
+        .controls button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .client-info {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: white;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .message {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+
+        .message.ping {
+            color: #666;
+        }
+
+        .message.connected {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .message.error {
+            color: #dc3545;
+        }
+
+        .message.info {
+            color: #007bff;
+        }
+
+        .message.status {
+            background: #fff3cd;
+            padding: 3px;
+            margin: 3px 0;
+        }
+
+        .comparison-info {
+            background: #e9ecef;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+
+        .test-instructions {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .legend-item {
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔌 SSE Disconnection Detection Demo</h1>
+
+    <div class="comparison-info">
+        <h3>📊 What This Demo Shows</h3>
+        <p>This client can connect to different SSE server implementations to compare disconnection handling:</p>
+        <ul>
+            <li><strong>Node.js (Port 5000)</strong>: Reference implementation with proper disconnection detection</li>
+            <li><strong>HTTPurple (Port 5001)</strong>: Shows HTTPurple's limitations</li>
+            <li><strong>Pure FFI (Port 5002)</strong>: PureScript with direct Node.js access</li>
+            <li><strong>Ruby (Port 5003)</strong>: WEBrick-based implementation with proper detection</li>
+            <li><strong>Java (Port 5004)</strong>: HttpServer-based implementation with proper detection</li>
+            <li><strong>Haskell (Port 5005)</strong>: Warp/WAI-based implementation with proper detection</li>
+            <li><strong>F# (Port 5006)</strong>: .NET HttpListener-based implementation with proper detection</li>
+            <li><strong>OCaml (Port 5007)</strong>: Dream-based implementation with proper detection</li>
+            <li><strong>Python (Port 5008)</strong>: HTTP server-based implementation with proper detection</li>
+            <li><strong>C# (Port 5009)</strong>: .NET HttpListener-based implementation with proper detection</li>
+            <li><strong>Elixir (Port 5010)</strong>: Plug/Cowboy-based implementation with proper detection</li>
+            <li><strong>Gleam (Port 5011)</strong>: Mist-based implementation with proper detection</li>
+            <li><strong>Rust (Port 5012)</strong>: Axum-based implementation with proper detection</li>
+            <li><strong>C (Port 5013)</strong>: Mongoose-based implementation with direct system-level control</li>
+        </ul>
+    </div>
+
+    <div class="test-instructions">
+        <h3>🧪 How to Test Disconnection Detection</h3>
+        <ol>
+            <li>Start a server (run the corresponding server script)</li>
+            <li>Click "Connect" to establish SSE connection</li>
+            <li>Observe regular ping messages</li>
+            <li>Close this browser tab or reload the page</li>
+            <li>Check the server console - proper implementations will immediately log the disconnection</li>
+            <li>Click "Fetch Status" to verify the client was removed from the server's active list</li>
+        </ol>
+    </div>
+
+    <!-- Node.js Reference Server -->
+    <div class="server-section">
+        <h2>🟢 Node.js Reference Server (Port 5000)</h2>
+        <div class="status disconnected" id="nodejs-status">Not Connected</div>
+        <div class="client-info" id="nodejs-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('nodejs', 5000)">Connect</button>
+            <button onclick="disconnect('nodejs')">Disconnect</button>
+            <button onclick="fetchStatus('nodejs', 5000)">Fetch Status</button>
+            <button onclick="clearMessages('nodejs')">Clear</button>
+        </div>
+        <div class="messages" id="nodejs-messages"></div>
+    </div>
+
+    <!-- HTTPurple Server -->
+    <div class="server-section">
+        <h2>🟡 HTTPurple Server (Port 5001)</h2>
+        <div class="status disconnected" id="httpurple-status">Not Connected</div>
+        <div class="client-info" id="httpurple-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('httpurple', 5001)">Connect</button>
+            <button onclick="disconnect('httpurple')">Disconnect</button>
+            <button onclick="fetchStatus('httpurple', 5001)">Fetch Status</button>
+            <button onclick="clearMessages('httpurple')">Clear</button>
+        </div>
+        <div class="messages" id="httpurple-messages"></div>
+    </div>
+
+    <!-- Pure FFI Server -->
+    <div class="server-section">
+        <h2>🔵 Pure FFI Server (Port 5002)</h2>
+        <div class="status disconnected" id="ffi-status">Not Connected</div>
+        <div class="client-info" id="ffi-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('ffi', 5002)">Connect</button>
+            <button onclick="disconnect('ffi')">Disconnect</button>
+            <button onclick="fetchStatus('ffi', 5002)">Fetch Status</button>
+            <button onclick="clearMessages('ffi')">Clear</button>
+        </div>
+        <div class="messages" id="ffi-messages"></div>
+    </div>
+
+    <!-- Ruby Server -->
+    <div class="server-section">
+        <h2>🔴 Ruby Server (Port 5003)</h2>
+        <div class="status disconnected" id="ruby-status">Not Connected</div>
+        <div class="client-info" id="ruby-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('ruby', 5003)">Connect</button>
+            <button onclick="disconnect('ruby')">Disconnect</button>
+            <button onclick="fetchStatus('ruby', 5003)">Fetch Status</button>
+            <button onclick="clearMessages('ruby')">Clear</button>
+        </div>
+        <div class="messages" id="ruby-messages"></div>
+    </div>
+
+    <!-- Java Server -->
+    <div class="server-section">
+        <h2>🟠 Java Server (Port 5004)</h2>
+        <div class="status disconnected" id="java-status">Not Connected</div>
+        <div class="client-info" id="java-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('java', 5004)">Connect</button>
+            <button onclick="disconnect('java')">Disconnect</button>
+            <button onclick="fetchStatus('java', 5004)">Fetch Status</button>
+            <button onclick="clearMessages('java')">Clear</button>
+        </div>
+        <div class="messages" id="java-messages"></div>
+    </div>
+
+    <!-- Haskell Server -->
+    <div class="server-section">
+        <h2>🟣 Haskell Server (Port 5005)</h2>
+        <div class="status disconnected" id="haskell-status">Not Connected</div>
+        <div class="client-info" id="haskell-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('haskell', 5005)">Connect</button>
+            <button onclick="disconnect('haskell')">Disconnect</button>
+            <button onclick="fetchStatus('haskell', 5005)">Fetch Status</button>
+            <button onclick="clearMessages('haskell')">Clear</button>
+        </div>
+        <div class="messages" id="haskell-messages"></div>
+    </div>
+
+    <!-- F# Server -->
+    <div class="server-section">
+        <h2>🔷 F# Server (Port 5006)</h2>
+        <div class="status disconnected" id="fsharp-status">Not Connected</div>
+        <div class="client-info" id="fsharp-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('fsharp', 5006)">Connect</button>
+            <button onclick="disconnect('fsharp')">Disconnect</button>
+            <button onclick="fetchStatus('fsharp', 5006)">Fetch Status</button>
+            <button onclick="clearMessages('fsharp')">Clear</button>
+        </div>
+        <div class="messages" id="fsharp-messages"></div>
+    </div>
+
+    <!-- OCaml Server -->
+    <div class="server-section">
+        <h2>🟤 OCaml Server (Port 5007)</h2>
+        <div class="status disconnected" id="ocaml-status">Not Connected</div>
+        <div class="client-info" id="ocaml-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('ocaml', 5007)">Connect</button>
+            <button onclick="disconnect('ocaml')">Disconnect</button>
+            <button onclick="fetchStatus('ocaml', 5007)">Fetch Status</button>
+            <button onclick="clearMessages('ocaml')">Clear</button>
+        </div>
+        <div class="messages" id="ocaml-messages"></div>
+    </div>
+
+    <!-- Python Server -->
+    <div class="server-section">
+        <h2>🐍 Python Server (Port 5008)</h2>
+        <div class="status disconnected" id="python-status">Not Connected</div>
+        <div class="client-info" id="python-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('python', 5008)">Connect</button>
+            <button onclick="disconnect('python')">Disconnect</button>
+            <button onclick="fetchStatus('python', 5008)">Fetch Status</button>
+            <button onclick="clearMessages('python')">Clear</button>
+        </div>
+        <div class="messages" id="python-messages"></div>
+    </div>
+
+    <!-- C# Server -->
+    <div class="server-section">
+        <h2>💙 C# Server (Port 5009)</h2>
+        <div class="status disconnected" id="csharp-status">Not Connected</div>
+        <div class="client-info" id="csharp-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('csharp', 5009)">Connect</button>
+            <button onclick="disconnect('csharp')">Disconnect</button>
+            <button onclick="fetchStatus('csharp', 5009)">Fetch Status</button>
+            <button onclick="clearMessages('csharp')">Clear</button>
+        </div>
+        <div class="messages" id="csharp-messages"></div>
+    </div>
+
+    <!-- Elixir Server -->
+    <div class="server-section">
+        <h2>🟢 Elixir Server (Port 5010)</h2>
+        <div class="status disconnected" id="elixir-status">Not Connected</div>
+        <div class="client-info" id="elixir-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('elixir', 5010)">Connect</button>
+            <button onclick="disconnect('elixir')">Disconnect</button>
+            <button onclick="fetchStatus('elixir', 5010)">Fetch Status</button>
+            <button onclick="clearMessages('elixir')">Clear</button>
+        </div>
+        <div class="messages" id="elixir-messages"></div>
+    </div>
+
+    <!-- Gleam Server -->
+    <div class="server-section">
+        <h2>✨ Gleam Server (Port 5011)</h2>
+        <div class="status disconnected" id="gleam-status">Not Connected</div>
+        <div class="client-info" id="gleam-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('gleam', 5011)">Connect</button>
+            <button onclick="disconnect('gleam')">Disconnect</button>
+            <button onclick="fetchStatus('gleam', 5011)">Fetch Status</button>
+            <button onclick="clearMessages('gleam')">Clear</button>
+        </div>
+        <div class="messages" id="gleam-messages"></div>
+    </div>
+
+    <!-- Rust Server -->
+    <div class="server-section">
+        <h2>🦀 Rust Server (Port 5012)</h2>
+        <div class="status disconnected" id="rust-status">Not Connected</div>
+        <div class="client-info" id="rust-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('rust', 5012)">Connect</button>
+            <button onclick="disconnect('rust')">Disconnect</button>
+            <button onclick="fetchStatus('rust', 5012)">Fetch Status</button>
+            <button onclick="clearMessages('rust')">Clear</button>
+        </div>
+        <div class="messages" id="rust-messages"></div>
+    </div>
+
+    <!-- C Server -->
+    <div class="server-section">
+        <h2>🔧 C Server (Port 5013)</h2>
+        <div class="status disconnected" id="c-status">Not Connected</div>
+        <div class="client-info" id="c-info">Client ID: None</div>
+        <div class="controls">
+            <button onclick="connect('c', 5013)">Connect</button>
+            <button onclick="disconnect('c')">Disconnect</button>
+            <button onclick="fetchStatus('c', 5013)">Fetch Status</button>
+            <button onclick="clearMessages('c')">Clear</button>
+        </div>
+        <div class="messages" id="c-messages"></div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item ping">Ping messages</div>
+        <div class="legend-item connected">Connection events</div>
+        <div class="legend-item error">Error messages</div>
+        <div class="legend-item info">Info messages</div>
+        <div class="legend-item status">Status responses</div>
+    </div>
+
+    <script>
+        const connections = {};
+        const messageCounts = { 
+            nodejs: 0, httpurple: 0, ffi: 0, ruby: 0, java: 0, 
+            haskell: 0, fsharp: 0, ocaml: 0, python: 0, csharp: 0, 
+            elixir: 0, gleam: 0, rust: 0, c: 0 
+        };
+
+        function updateStatus(server, status, text) {
+            const statusEl = document.getElementById(`${server}-status`);
+            statusEl.textContent = text || status;
+            statusEl.className = `status ${status}`;
+        }
+
+        function addMessage(server, message, className = '') {
+            const div = document.createElement('div');
+            div.className = `message ${className}`;
+            const timestamp = new Date().toLocaleTimeString();
+            div.textContent = `[${timestamp}] ${message}`;
+
+            const messagesEl = document.getElementById(`${server}-messages`);
+            messagesEl.appendChild(div);
+            // div.scrollIntoView();
+
+            messageCounts[server]++;
+            if (messageCounts[server] > 500) {
+                messagesEl.removeChild(messagesEl.firstChild);
+                messageCounts[server]--;
+            }
+        }
+
+        function connect(server, port) {
+            if (connections[server]) {
+                connections[server].close();
+            }
+
+            updateStatus(server, 'connecting', 'Connecting...');
+            addMessage(server, `Connecting to localhost:${port}/events`, 'info');
+
+            const eventSource = new EventSource(`http://localhost:${port}/events`);
+            connections[server] = eventSource;
+
+            eventSource.onopen = function () {
+                updateStatus(server, 'connected', 'Connected');
+                addMessage(server, 'SSE connection opened', 'connected');
+            };
+
+            eventSource.onmessage = function (event) {
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'connected') {
+                        const clientId = data.clientId || 'Unknown';
+                        document.getElementById(`${server}-info`).innerHTML =
+                            `<strong>Client ID:</strong> ${clientId}<br>` +
+                            `<strong>Message:</strong> ${data.message || 'Connected'}`;
+                        addMessage(server, `Connected as ${clientId}: ${data.message}`, 'connected');
+                    } else if (data.type === 'ping') {
+                        addMessage(server, `Ping: ${data.timestamp} (${data.totalClients} clients)`, 'ping');
+                    } else {
+                        addMessage(server, `Data: ${JSON.stringify(data)}`);
+                    }
+                } catch (e) {
+                    addMessage(server, `Raw: ${event.data}`);
+                }
+            };
+
+            eventSource.onerror = function (event) {
+                updateStatus(server, 'disconnected', 'Error/Disconnected');
+                addMessage(server, 'SSE connection error', 'error');
+                document.getElementById(`${server}-info`).innerHTML = 'Client ID: None';
+            };
+        }
+
+        function disconnect(server) {
+            if (connections[server]) {
+                connections[server].close();
+                connections[server] = null;
+                updateStatus(server, 'disconnected', 'Manually Disconnected');
+                addMessage(server, 'Manually disconnected', 'info');
+                document.getElementById(`${server}-info`).innerHTML = 'Client ID: None';
+            }
+        }
+
+        async function fetchStatus(server, port) {
+            try {
+                addMessage(server, `Fetching status from localhost:${port}/status`, 'info');
+                const response = await fetch(`http://localhost:${port}/status`);
+                const status = await response.json();
+
+                const message = `Status: ${status.activeConnections} active, clients: [${status.clients.map(c => c.id).join(', ')
+                    }]`;
+                addMessage(server, message, 'status');
+            } catch (error) {
+                addMessage(server, `Status fetch failed: ${error.message}`, 'error');
+            }
+        }
+
+        function clearMessages(server) {
+            document.getElementById(`${server}-messages`).innerHTML = '';
+            messageCounts[server] = 0;
+            addMessage(server, 'Messages cleared', 'info');
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function () {
+            Object.values(connections).forEach(conn => {
+                if (conn) conn.close();
+            });
+        });
+
+        // Initial message
+        window.addEventListener('load', function () {
+            ['nodejs', 'httpurple', 'ffi', 'ruby', 'java', 'haskell', 'fsharp', 'ocaml', 'python', 'csharp', 'elixir', 'gleam', 'rust', 'c'].forEach(server => {
+                addMessage(server, 'Ready to test. Start the corresponding server and click Connect.', 'info');
+            });
+        });
+    </script>
+</body>
+
+</html>

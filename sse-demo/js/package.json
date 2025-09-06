@@ -1,0 +1,16 @@
+{
+  "name": "sse-server-nodejs",
+  "version": "1.0.0",
+  "description": "Node.js SSE Server with proper disconnection detection",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["sse", "server-sent-events", "real-time"],
+  "author": "SSE Demo",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

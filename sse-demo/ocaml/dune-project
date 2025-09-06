@@ -1,0 +1,11 @@
+(lang dune 3.0)
+(name sse_server)
+
+(package
+ (name sse_server)
+ (synopsis "SSE Server with proper disconnection detection using Eio")
+ (depends
+  ocaml
+  dune
+  eio_main
+  eio))

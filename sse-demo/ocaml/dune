@@ -1,0 +1,4 @@
+(executables
+ (names server)
+ (public_names sse_server)
+ (libraries eio_main eio))

@@ -1,0 +1,13 @@
+{
+  "name": "sse-testing-common",
+  "version": "1.0.0",
+  "description": "Common testing utilities for SSE server implementations",
+  "main": "test-disconnection.js",
+  "scripts": {
+    "test": "node test-disconnection.js",
+    "test:quick": "node test-disconnection.js nodejs ruby python"
+  },
+  "dependencies": {
+    "eventsource": "^2.0.2"
+  }
+}

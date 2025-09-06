@@ -1,0 +1,6 @@
+# C# build outputs
+bin/
+obj/
+
+# VS Code settings
+.vscode/

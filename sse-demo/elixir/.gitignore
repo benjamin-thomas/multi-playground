@@ -1,0 +1,8 @@
+# Elixir build directory
+_build/
+
+# Dependencies
+deps/
+
+# Language server cache
+.elixir_ls/

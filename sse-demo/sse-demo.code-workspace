@@ -1,0 +1,72 @@
+{
+	"folders": [
+		{
+			"name": "🔷 F# (Port 5006)",
+			"path": "fsharp"
+		},
+		{
+			"name": "🚦 Common",
+			"path": "common"
+		},
+		{
+			"name": "🟢 Node.js Reference (Port 5000)",
+			"path": "js"
+		},
+		{
+			"name": "🔵 PureScript FFI (Port 5001)",
+			"path": "ps"
+		},
+		{
+			"name": "🐹 Go (Port 5002)",
+			"path": "go"
+		},
+		{
+			"name": "🔴 Ruby (Port 5003)",
+			"path": "ruby"
+		},
+		{
+			"name": "🟠 Java (Port 5004)",
+			"path": "java"
+		},
+		{
+			"name": "🟣 Haskell (Port 5005)",
+			"path": "haskell"
+		},
+		{
+			"name": "🟤 OCaml (Port 5007)",
+			"path": "ocaml"
+		},
+		{
+			"name": "🐍 Python (Port 5008)",
+			"path": "python"
+		},
+		{
+			"name": "💙 C# (Port 5009)",
+			"path": "csharp"
+		},
+		{
+			"name": "🟢 Elixir (Port 5010)",
+			"path": "elixir"
+		},
+		{
+			"name": "✨ Gleam (Port 5011)",
+			"path": "gleam"
+		},
+		{
+			"name": "🦀 Rust (Port 5012)",
+			"path": "rust"
+		},
+		{
+			"name": "🔧 C (Port 5013)",
+			"path": "c"
+		},
+		{
+			"name": "📡 Erlang (Port 5014)",
+			"path": "erlang"
+		},
+		{
+			"name": "🚂 Express (Port 5015)",
+			"path": "express"
+		},
+	]
+}

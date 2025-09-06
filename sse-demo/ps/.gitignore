@@ -1,0 +1,7 @@
+# PureScript compiled output
+output/
+
+# Spago package cache
+.spago/
+
+/.psc-ide-port

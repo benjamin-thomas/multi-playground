@@ -1,0 +1,5 @@
+# Cabal build directory
+dist-newstyle/
+
+# Local cabal config
+cabal.project.local*
