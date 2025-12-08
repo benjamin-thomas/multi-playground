@@ -6,18 +6,18 @@ import Data.List
 
 -- stack ghci --package pretty-simple ./Day01.hs
 
-type CircularList a = ([a], a, [a])
+type Ring a = ([a], a, [a])
 
 
-dial :: CircularList Int
+dial :: Ring Int
 dial = ([], 0, [1..99])
 
 
-start :: CircularList Int
+start :: Ring Int
 start = rotateR 50 dial
 
 
-rotateR :: Int -> CircularList a -> CircularList a
+rotateR :: Int -> Ring a -> Ring a
 rotateR n (ls, x, rs)
     | n == 0    = (ls, x, rs)
     | otherwise =
@@ -34,7 +34,7 @@ rotateR n (ls, x, rs)
             )
 
 
-rotateL :: Int -> CircularList a -> CircularList a
+rotateL :: Int -> Ring a -> Ring a
 rotateL n (ls, x, rs)
   | n == 0    = (ls, x, rs)
   | otherwise =
@@ -65,7 +65,7 @@ example =
     , "L82"
     ]
 
-rotate :: String -> CircularList Int -> CircularList Int
+rotate :: String -> Ring Int -> Ring Int
 rotate ('L' : xs) = rotateL (read xs)
 rotate ('R' : xs) = rotateR (read xs)
 rotate _ = error "rotate: bad input"
@@ -79,38 +79,38 @@ solve1 :: [String] -> Int
 solve1 = length . filter (\(_,n,_) -> n == 0) . scanl (flip rotate) start
 
 
-simple :: CircularList Int
+simple :: Ring Int
 simple = ([], 0, [1..9])
 
 
-track :: (Int -> CircularList Int -> CircularList Int) -> Int -> CircularList Int -> (CircularList Int, Int)
+track :: (Int -> Ring Int -> Ring Int) -> Int -> Ring Int -> (Ring Int, Int)
 track f n d =
     let
         res = take (n+1) $ iterate (f 1) d
         d' = res !! n
-        m = length $ filter (==0) $ fmap (\(_,x,_) -> x) (tail res)
+        m = length $ filter (== 0) $ fmap (\(_,x,_) -> x) (tail res)
     in
     (d', m)
 
 
-rotateR' :: Int -> CircularList Int -> (CircularList Int, Int)
+rotateR' :: Int -> Ring Int -> (Ring Int, Int)
 rotateR' =
     track rotateR
 
 
-rotateL' :: Int -> CircularList Int -> (CircularList Int, Int)
+rotateL' :: Int -> Ring Int -> (Ring Int, Int)
 rotateL' =
     track rotateL
 
 
 -- rotate' "L3" simple
-rotate' :: String -> CircularList Int -> (CircularList Int, Int)
+rotate' :: String -> Ring Int -> (Ring Int, Int)
 rotate' ('L' : xs ) = rotateL' (read xs)
 rotate' ('R' : xs ) = rotateR' (read xs)
 rotate' _ = error "rotate': bad input"
 
 {-
-*Main> readFile "Day01.input.txt" >>= print . solve2 . lines
+*Main> readFile "../inputs/Day01.txt" >>= print . solve2 . lines
 6122
 -}
 
