@@ -1,0 +1,38 @@
+cabal-version:      3.0
+name:               reified-effects
+version:            0.1.0.0
+synopsis:           Demonstration of the reified effects pattern
+license:            MIT
+author:             Benjamin
+maintainer:         benjamin@example.com
+build-type:         Simple
+
+executable reified-effects-callbacks
+    main-is:          Main0.hs
+    build-depends:    base ^>=4.18.3.0
+                    , containers
+                    , async
+                    , random
+    hs-source-dirs:   .
+    default-language: Haskell2010
+    ghc-options:      -Wall
+
+executable reified-effects-scattered
+    main-is:          Main1.hs
+    build-depends:    base ^>=4.18.3.0
+                    , containers
+                    , async
+                    , random
+    hs-source-dirs:   .
+    default-language: Haskell2010
+    ghc-options:      -Wall
+
+executable reified-effects-free
+    main-is:          Main2.hs
+    build-depends:    base ^>=4.18.3.0
+                    , containers
+                    , async
+                    , random
+    hs-source-dirs:   .
+    default-language: Haskell2010
+    ghc-options:      -Wall

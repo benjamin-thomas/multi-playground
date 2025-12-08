@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Main0 - Callbacks Version</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        input {
+            margin: 5px;
+            padding: 8px;
+            font-size: 14px;
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+            margin-top: 20px;
+        }
+        p {
+            margin: 5px 0;
+        }
+        .nav {
+            background: #f0f0f0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav a {
+            margin-right: 15px;
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="main0.html">Main0 (Callbacks)</a>
+        <a href="main1.html">Main1 (Scattered Actions)</a>
+    </div>
+    <div id="app"></div>
+    <script src="main0.js"></script>
+    <script>
+        Elm.Main0.init({ node: document.getElementById('app') });
+    </script>
+</body>
+</html>
