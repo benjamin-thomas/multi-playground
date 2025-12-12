@@ -49,3 +49,8 @@
 
 # Erlang
 **/solution.beam
+
+
+# Haskell "go to dependency" extension
+.repos
+.vscode

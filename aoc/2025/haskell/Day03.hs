@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -Wall #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 {-
 
@@ -94,8 +95,8 @@ expand12 _ = error "expand12: bad value"
 
 
 -- Attempt at solving part2 using combinations as I did in part 1... way too slow!
-_largest2combi :: (Num a, Ord a) => [a] -> a
-_largest2combi row = maximum $ map expand12 (choose 12 row)
+largest2combi :: (Num a, Ord a) => [a] -> a
+largest2combi row = maximum $ map expand12 (choose 12 row)
 
 
 solve2 :: String -> Either ParseError Int
@@ -188,3 +189,46 @@ main = do
     real <- readFile "../inputs/Day03.txt"
     test "solve1 (real)" (Right 17179)           (solve1 real)
     test "solve2 (real)" (Right 170025781683941) (solve2 real)
+
+
+{-
+
+Extra
+=====
+
+
+A very cool technique to drop from the end of a list!
+
+λ> let xs = [1..10] in zip xs (drop 2 xs)
+[(1,3),(2,4),(3,5),(4,6),(5,7),(6,8),(7,9),(8,10)]
+
+λ> let xs = [1..10] in map fst $ zip xs (drop 2 xs)
+[1,2,3,4,5,6,7,8]
+
+λ> let xs = [1..10] in zipWith (\a b -> b) xs (drop 2 xs)
+[3,4,5,6,7,8,9,10]
+λ> let xs = [1..10] in zipWith (\a b -> a) xs (drop 2 xs)
+[1,2,3,4,5,6,7,8]
+λ> let xs = [1..10] in zipWith const xs (drop 2 xs)
+[1,2,3,4,5,6,7,8]
+
+
+-}
+
+{-| Drops `n` items from the end of a list
+
+λ> drop 2 [1..10]
+[3,4,5,6,7,8,9,10]
+
+λ> dropEnd 2 [1..10]
+[1,2,3,4,5,6,7,8]
+
+-}
+dropEnd :: Int -> [a] -> [a]
+dropEnd n xs = zipWith const xs (drop n xs)
+
+
+-- This naive version traverses the list twice (length then take)
+dropEnd' :: Int -> [a] -> [a]
+dropEnd' n xs =
+  let len = length xs in take (len-n) xs
