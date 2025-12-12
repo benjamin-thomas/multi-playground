@@ -1,5 +1,19 @@
 {-# OPTIONS_GHC -Wall #-}
 
+{-
+
+Map over IO (twice), then map into Right.
+
+λ> readFile "../inputs/Day02.example" <&> parse items "" <&> fmap (take 1)
+Right [(11,22)]
+λ> readFile "../inputs/Day02.example" <&> parse items "" <&> fmap length
+Right 11
+
+Then we can build the rest of the "pipeline"
+λ> readFile "../inputs/Day02.example" <&> parse items "" <&> fmap (concatMap findBadIds2 >>> map read >>> sum)
+Right 4174379265
+-}
+
 import Text.ParserCombinators.Parsec
 
 -- TEST HELPERS
