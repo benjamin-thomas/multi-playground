@@ -9,6 +9,7 @@ import Data.List (unfoldr)
 import Data.Maybe (mapMaybe)
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Data.Bifunctor (first)
 
 parseLine :: String -> [Bool]
 parseLine = map (== '@')
@@ -27,8 +28,8 @@ coords grid =
         )
         (zip [0 ..] grid)
 
-neighborsValues' :: Set (Int, Int) -> (Int, Int) -> Set (Int, Int)
-neighborsValues' grid =
+neighbors :: Set (Int, Int) -> (Int, Int) -> Set (Int, Int)
+neighbors grid =
     Set.intersection grid . validNeighbors
   where
     validNeighbors :: (Int, Int) -> Set (Int, Int)
@@ -46,7 +47,7 @@ neighborsValues' grid =
 {- FOURMOLU_ENABLE -}
 
 cutoff :: Set (Int, Int) -> (Int, Int) -> Bool
-cutoff rolls pos = Set.size (neighborsValues' rolls pos) < 4
+cutoff rolls pos = Set.size (neighbors rolls pos) < 4
 
 {-
 λ> part1 <$> readFile "../inputs/Day04.txt"
@@ -55,27 +56,23 @@ cutoff rolls pos = Set.size (neighborsValues' rolls pos) < 4
 part1 :: Set (Int, Int) -> Int
 part1 rolls =
     Set.size $
-        Set.filter cutoff' rolls
-  where
-    cutoff' = cutoff rolls
+        Set.filter (cutoff rolls) rolls
 
 part2 :: Set (Int, Int) -> Int
 part2 = sum . tryRemove
 
 tryRemove :: Set (Int, Int) -> [Int]
-tryRemove curr =
+tryRemove rolls =
     if removed == 0 then [] else removed : tryRemove next
   where
-    removed = Set.size $ Set.difference curr next
-    next = Set.filter (not . cutoff curr) curr
+    (removed, next) = first Set.size $ Set.partition (cutoff rolls) rolls
 
 tryRemove2 :: Set (Int, Int) -> [Int]
 tryRemove2 =
     unfoldr
         ( \curr ->
             let
-                removed = Set.size $ Set.difference curr next
-                next = Set.filter (not . cutoff curr) curr
+                (removed, next) = first Set.size $ Set.partition (cutoff curr) curr
              in
                 if removed == 0
                     then
@@ -93,8 +90,7 @@ tryRemove3 rolls =
         iterate
             ( \(_, curr) ->
                 let
-                    removed = Set.size $ Set.difference curr next
-                    next = Set.filter (not . cutoff curr) curr
+                    (removed, next) = first Set.size $ Set.partition (cutoff curr) curr
                  in
                     (Just removed, next)
             )
