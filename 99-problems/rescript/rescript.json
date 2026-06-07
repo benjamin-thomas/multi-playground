@@ -1,14 +1,16 @@
 {
   "name": "99-problems",
-  "sources": {
-    "dir": "src",
-    "subdirs": true
-  },
+  "sources": [
+    {
+      "dir": "src",
+      "subdirs": true
+    }
+  ],
   "package-specs": {
     "module": "esmodule",
     "in-source": true
   },
   "suffix": ".res.mjs",
-  "dependencies": [],
+  "dependencies": ["rescript-vitest"],
   "compiler-flags": []
 }

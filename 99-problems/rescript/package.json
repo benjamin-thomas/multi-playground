@@ -4,9 +4,15 @@
   "scripts": {
     "res:build": "rescript",
     "res:clean": "rescript clean",
-    "res:dev": "rescript watch"
+    "res:dev": "rescript watch --clear-screen",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "rescript": "12.3.0"
+    "rescript": "^13.0.0-alpha.4"
+  },
+  "devDependencies": {
+    "rescript-vitest": "^2.1.1",
+    "vitest": "^4.1.8"
   }
 }
