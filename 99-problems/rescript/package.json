@@ -1,0 +1,12 @@
+{
+  "name": "99-problems",
+  "private": true,
+  "scripts": {
+    "res:build": "rescript",
+    "res:clean": "rescript clean",
+    "res:dev": "rescript watch"
+  },
+  "dependencies": {
+    "rescript": "12.3.0"
+  }
+}
