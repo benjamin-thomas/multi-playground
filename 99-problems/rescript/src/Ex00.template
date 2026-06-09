@@ -1,0 +1,16 @@
+/*
+
+ https://ocaml.org/exercises#0
+
+
+ */
+
+%%private(
+  if Vitest.inSource {
+    open Vitest.InSource
+
+    test("impl", t => {
+      t->expect(%todo)->Expect.toEqual(%todo)
+    })
+  }
+)
