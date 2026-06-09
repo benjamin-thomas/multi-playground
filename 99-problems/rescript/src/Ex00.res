@@ -10,7 +10,7 @@
     open Vitest.InSource
 
     test("impl", t => {
-      t->expect(%todo)->Expect.toEqual(%todo)
+      t->expect(1 + 2)->Expect.toEqual(3)
     })
   }
 )
