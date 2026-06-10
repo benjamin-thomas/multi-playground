@@ -18,22 +18,15 @@ type rec node<'a> =
   | One('a)
   | Many(list<node<'a>>)
 
-let rec flatten: list<node<'a>> => list<'a> = nodes => {
-  let rec aux: (list<'a>, list<node<'a>>) => list<'a> = (acc: list<'a>, nodes) => {
+let flatten: list<node<'a>> => list<'a> = nodes => {
+  let rec aux = (acc, nodes) => {
     switch nodes {
     | list{} => acc
-    | list{x, ...rest} =>
-      switch x {
-      | One(item) => aux(List.add(acc, item), rest)
-      | Many(items) => {
-          let next = flatten(items)
-          let acc = List.concat(next, acc)
-          aux(acc, rest)
-        }
-      }
+    | list{One(item), ...rest} => aux(List.add(acc, item), rest)
+    | list{Many(items), ...rest} => aux(acc, List.concat(items, rest))
     }
   }
-  aux(list{}, List.reverse(nodes))
+  List.reverse(aux(list{}, nodes))
 }
 
 %%private(
