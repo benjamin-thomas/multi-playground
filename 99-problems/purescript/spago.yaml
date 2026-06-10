@@ -1,0 +1,18 @@
+package:
+  name: 99-purescript-problems
+  dependencies:
+    - console
+    - effect
+    - prelude
+    - partial
+    - maybe
+    - lists
+  test:
+    main: Test.Main
+    dependencies:
+      - spec
+      - spec-node
+workspace:
+  packageSet:
+    registry: 77.5.0
+  extraPackages: {}
