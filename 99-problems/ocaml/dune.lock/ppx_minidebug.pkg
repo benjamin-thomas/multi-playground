@@ -1,0 +1,34 @@
+(version 3.0.0)
+
+(build
+ (progn
+  (when
+   %{pkg-self:dev}
+   (run dune subst))
+  (run dune build -p %{pkg-self:name} -j %{jobs} @install)))
+
+(depends
+ ocaml
+ dune
+ ppx_deriving
+ ppx_sexp_conv
+ ppxlib
+ printbox
+ printbox-text
+ printbox-html
+ printbox-md
+ ptime
+ mtime
+ re
+ sexplib0
+ thread-local-storage
+ mdx
+ sqlite3
+ notty
+ nottui-unix)
+
+(source
+ (fetch
+  (url
+   https://github.com/lukstafi/ppx_minidebug/archive/refs/tags/3.0.0.2.tar.gz)
+  (checksum md5=de9d05a35736c328961cc61f7f740321)))

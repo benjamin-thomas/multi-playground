@@ -1,0 +1,16 @@
+(version 0.2.4)
+
+(build
+ (progn
+  (when
+   %{pkg-self:dev}
+   (run dune subst))
+  (run dune build -p %{pkg-self:name} -j %{jobs} @install)))
+
+(depends dune ocaml cppo uutf)
+
+(source
+ (fetch
+  (url
+   https://github.com/ocaml-community/notty-community/releases/download/v0.2.4/notty-community-0.2.4.tar.gz)
+  (checksum md5=b8cb51edb37d28d9d53e98ac52848677)))

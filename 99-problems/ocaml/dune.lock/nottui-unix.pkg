@@ -1,0 +1,16 @@
+(version 0.5)
+
+(build
+ (progn
+  (when
+   %{pkg-self:dev}
+   (run dune subst))
+  (run dune build -p %{pkg-self:name} -j %{jobs} @install)))
+
+(depends dune lwd notty-community nottui)
+
+(source
+ (fetch
+  (url https://github.com/let-def/lwd/releases/download/v0.5/lwd-0.5.tbz)
+  (checksum
+   sha256=60066378bba103150207746b06e978bbbd20e5312a4f60bb674f586d8c8f64e6)))
