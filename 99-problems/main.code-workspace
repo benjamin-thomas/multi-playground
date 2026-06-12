@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"path": "haskell"
+		},
+		{
+			"path": "purescript"
+		},
+		{
+			"path": "ocaml"
+		},
+		{
+			"path": "rescript"
+		},
+		{
+			"path": "moonbit"
+		}
+	],
+	"settings": {
+		"ocaml.sandbox": {
+			"kind": "global"
+		}
+	}
+}
