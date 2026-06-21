@@ -11,14 +11,16 @@ Eliminate consecutive duplicates of list elements.
  */
 
 let compress = input => {
-  let rec aux = (acc, inp) =>
+  let rec aux = (acc, x, inp) =>
     switch inp {
-    | list{} => acc
-    | list{x} => acc->List.add(x)
-    | list{x, y, ...rest} =>
-      x == y ? aux(acc, rest->List.add(y)) : aux(acc->List.add(x), rest->List.add(y))
+    | list{} => List.reverse(acc)
+    | list{y, ...rest} => x == y ? aux(acc, y, rest) : aux(List.add(acc, y), y, rest)
     }
-  aux(list{}, input)->List.reverse
+
+  switch input {
+  | list{} => list{}
+  | list{x, ...rest} => aux(list{x}, x, rest)
+  }
 }
 
 %%private(
